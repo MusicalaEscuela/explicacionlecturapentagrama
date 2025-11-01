@@ -1,0 +1,285 @@
+/* =======================
+   styles.css — Musicala Pentagrama
+   ======================= */
+
+:root {
+  --bg: #f9faff;
+  --card: #ffffff;
+  --text: #111528;
+  --muted: #555b73;
+  --accent: #0C41C4;
+  --accent-dark: #092f91;
+  --radius: 16px;
+  --font: 'Inter', sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg: #0e111a;
+  --card: #161a25;
+  --text: #f5f7ff;
+  --muted: #b7bdd7;
+  --accent: #5a86ff;
+  --accent-dark: #4b6ede;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  line-height: 1.6;
+  transition: background 0.4s, color 0.4s;
+}
+
+/* ------------------ Layout ------------------ */
+
+.wrap {
+  width: min(1200px, 95%);
+  margin: 0 auto;
+}
+
+header.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.logo {
+  width: 140px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  transition: background 0.3s;
+}
+
+.hero {
+  display: block;
+  margin-top: 2rem;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.mt-2 { margin-top: .5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 3rem; }
+.mb-8 { margin-bottom: 3rem; }
+
+.text-sm { font-size: 0.9rem; }
+.text-xs { font-size: 0.8rem; }
+
+.muted { color: var(--muted); }
+.resaltado { color: var(--accent); }
+
+/* ------------------ Chips / Botones ------------------ */
+
+.chip {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .3s;
+}
+
+.chip:hover {
+  background: var(--accent-dark);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .5rem 1rem;
+  cursor: pointer;
+  transition: background .3s;
+}
+
+.btn.primary:hover {
+  background: var(--accent-dark);
+}
+
+/* ------------------ Staff ------------------ */
+
+.staffShell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.staff {
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  display: block;
+}
+
+.listPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .5rem;
+}
+
+.listPills span {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-weight: 600;
+  font-size: .9rem;
+}
+
+/* ------------------ Lightbox ------------------ */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.lightbox img {
+  max-width: 90%;
+  max-height: 80vh;
+  border-radius: var(--radius);
+}
+
+.lightbox[aria-hidden="false"] {
+  display: flex;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+.lightbox-cap {
+  color: #ddd;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ------------------ Tooltip Explorar ------------------ */
+
+.explore-tip {
+  position: fixed;
+  bottom: 12px;
+  right: 16px;
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  font-size: 0.9rem;
+  display: none;
+  z-index: 999;
+}
+
+/* ------------------ Manos ------------------ */
+
+.hand-thumb {
+  width: auto;
+  max-width: 100%;
+  height: 280px; /* Igualadas ambas manos */
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: transform .3s;
+}
+
+.hand-thumb:hover {
+  transform: scale(1.03);
+}
+
+/* ------------------ Quiz ------------------ */
+
+.quiz .opts {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.quiz .opts button {
+  background: var(--card);
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  padding: .4rem .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s;
+}
+
+.quiz .opts button:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.feedback {
+  font-weight: 700;
+  margin-right: 1rem;
+}
+
+.feedback.correct { color: green; }
+.feedback.wrong { color: crimson; }
+
+/* ------------------ Responsivo ------------------ */
+
+@media (max-width: 768px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+  .hand-thumb {
+    height: 220px; /* versión móvil */
+  }
+  .wrap {
+    width: 90%;
+  }
+  .card {
+    padding: .8rem;
+  }
+  .logo {
+    width: 110px;
+  }
+}

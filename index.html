@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Musicala • Aprende a leer en el Pentagrama</title>
+
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header wrap">
+    <img src="logo.png" alt="Musicala" class="logo">
+    <div class="header-actions">
+      <button id="themeToggle" class="chip" aria-pressed="false" title="Cambiar tema">🌗 Modo oscuro</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- HERO -->
+    <section class="card hero">
+      <div class="grid2">
+        <div>
+          <h1>Leer música en el <span class="resaltado">pentagrama</span></h1>
+          <p class="mt-3">
+            En Musicala leemos como aprendemos a hablar:
+            primero <strong>vocales</strong>, luego <strong>consonantes</strong> y después <strong>palabras</strong>.
+            Aquí es igual: primero <strong>líneas</strong>, luego <strong>espacios</strong> y finalmente
+            <strong>líneas + espacios</strong>.
+          </p>
+          <div class="mt-4">
+            <div class="muted" style="font-weight:700; margin-bottom:8px">Elige la clave</div>
+            <div class="chips" id="claveChips"></div>
+          </div>
+        </div>
+
+        <div class="staffShell">
+          <svg id="staffHero" viewBox="0 0 560 180" class="staff" role="img" aria-label="Pentagrama principal"></svg>
+          <p class="muted mt-2 text-sm">
+            Pentagrama = <em>penta</em> (cinco) + <em>gramma</em> (trazo/líneas).
+            Son <strong>5 líneas</strong> (L1–L5) y <strong>4 espacios</strong> (E1–E4).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEFINICIONES -->
+    <section class="mt-8 grid3">
+      <div class="card p-16">
+        <h2><span class="k">1.</span> ¿Qué es el pentagrama?</h2>
+        <p class="mt-3 muted">
+          Es el sistema de <strong>5 líneas paralelas</strong> y <strong>4 espacios</strong> donde escribimos las notas.
+          La posición vertical define la <em>altura</em> (qué nota es) y las figuras definen la <em>duración</em>.
+        </p>
+        <ul class="mt-3 muted lista">
+          <li><strong>Etimología:</strong> del griego <em>penta</em> (cinco) + <em>gramma</em> (trazo/línea).</li>
+          <li><strong>Numeración:</strong> líneas 1–5 de abajo hacia arriba.</li>
+        </ul>
+      </div>
+
+      <div class="card p-16">
+        <h2><span class="k">2.</span> ¿Qué hace la clave?</h2>
+        <p class="mt-3 muted">
+          La <strong>clave</strong> es una etiqueta que dice: “esta <em>línea</em> se llama así”.
+          Desde ese punto, se cuentan <strong>L1→L5</strong> y los <strong>E1→E4</strong> (espacios) de abajo hacia arriba.
+        </p>
+        <div class="mt-3 muted text-sm">
+          <ul class="lista">
+            <li><strong>Clave de Sol:</strong> la <strong>2ª línea (L2)</strong> vale <strong>Sol</strong>.</li>
+            <li><strong>Clave de Fa:</strong> la <strong>4ª línea (L4)</strong> vale <strong>Fa</strong>.</li>
+            <li><strong>Clave de Do (en 3ª):</strong> la <strong>3ª línea (L3)</strong> vale <strong>Do</strong>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card p-16">
+        <h2><span class="k">3.</span> ¿Por qué hay varias claves?</h2>
+        <p class="mt-3 muted">
+          Porque cada voz o instrumento suena en un rango distinto. Cambiando la clave <em>centramos</em> las notas dentro
+          del pentagrama y evitamos usar muchas líneas adicionales. Así la lectura es más <strong>clara y rápida</strong>.
+        </p>
+        <ul class="mt-3 muted lista">
+          <li><strong>Sol:</strong> zonas agudas (violín, flauta, soprano, mano derecha del piano).</li>
+          <li><strong>Fa:</strong> zonas graves (bajo, tuba, fagot, mano izquierda del piano).</li>
+          <li><strong>Do (en 3ª):</strong> zonas medias (viola, tenor, zonas medias de chelo/trombón).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MANOS (con lightbox) -->
+    <section class="mt-8 card p-16">
+      <h2><span class="k">Tip</span>Manos de referencia (mnemotecnia)</h2>
+      <p class="mt-3 muted">
+        Usa estas manos como recordatorio visual del orden <strong>abajo → arriba</strong>.
+        Haz clic en la imagen para verla en grande.
+      </p>
+      <div class="grid2 mt-4">
+        <figure class="hand">
+          <img
+            src="Mano de líneas.png"
+            alt="Mano de referencia para líneas (abajo→arriba)"
+            class="hand-thumb"
+            data-enlarge="Mano de líneas.png"
+          />
+          <figcaption class="muted text-sm mt-2">
+            <strong>Líneas:</strong> nombra de la 1ª a la 5ª (abajo→arriba) según la clave elegida.
+          </figcaption>
+        </figure>
+
+        <figure class="hand">
+          <img
+            src="Mano de espacios.png"
+            alt="Mano de referencia para espacios (abajo→arriba)"
+            class="hand-thumb"
+            data-enlarge="Mano de espacios.png"
+          />
+          <figcaption class="muted text-sm mt-2">
+            <strong>Espacios:</strong> también se leen de abajo hacia arriba.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- QUIZ (refuerzo rápido) -->
+    <section class="mt-8 card p-16 quiz">
+      <div class="top-flex">
+        <h2><span class="k">4.</span> Ejercicio: ¿Qué nota va aquí?</h2>
+        <div class="chips" id="modoQuizChips"></div>
+        <div class="chips mt-2" id="claveQuizChips"></div>
+      </div>
+
+      <div class="grid2 mt-4">
+        <div>
+          <svg id="staffQuiz" viewBox="0 0 560 180" class="staff" role="img" aria-label="Ejercicio de identificación"></svg>
+          <p class="muted mt-2 text-sm">El recuadro marca la zona a identificar.</p>
+        </div>
+        <div>
+          <p class="muted">
+            En <strong id="labelClaveNombre"></strong> las <span id="labelModoTxt"></span> (abajo → arriba) son:
+          </p>
+          <div class="listPills" id="pillsMapa"></div>
+
+          <div class="opts mt-4" id="opcionesQuiz"></div>
+          <div class="mt-4 flex">
+            <span id="feedback" class="feedback" aria-live="polite"></span>
+            <button id="btnNext" class="btn primary">Siguiente</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-8 muted text-center text-xs">
+      Hecho con 💙 por Musicala.
+    </footer>
+  </main>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <button class="lightbox-close" aria-label="Cerrar">×</button>
+    <img id="lightboxImg" src="" alt="Ampliación" />
+    <div id="lightboxCap" class="lightbox-cap"></div>
+  </div>
+
+  <!-- Tooltip Modo Explorar -->
+  <div id="exploreTip" class="explore-tip" role="status" aria-live="polite"></div>
+
+  <!-- App -->
+  <script defer src="app.js"></script>
+</body>
+</html>
