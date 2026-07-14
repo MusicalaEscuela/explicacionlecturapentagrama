@@ -1,258 +1,568 @@
 /* =======================
-   app.js — Musicala · Pentagrama
+   app.js — Musicala · Lectura en el Pentagrama
+   Ruta progresiva con los ejercicios reales de las guías (ver ejercicios.js)
+   + Modo presentación (pantalla grande para el salón)
    ======================= */
 
-/* ----- Datos de claves ----- */
+/* ----- Notas diatónicas ----- */
+const NOTES = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+
+/* ----- Claves -----
+   Grados verticales: 0=L1, 1=E1, 2=L2, 3=E2, 4=L3, 5=E3, 6=L4, 7=E4, 8=L5.
+   Los grados negativos van por debajo del pentagrama y los >8 por encima.
+   refPos = grado de la línea de referencia · refNote = índice en NOTES.
+   Los glifos son SMuFL (fuente Bravura): la línea base del glifo cae exactamente
+   sobre la línea que la clave nombra, y 1 espacio de pentagrama = font-size / 4. */
 const CLAVES = {
-  sol: { id: "sol", nombre: "Clave de Sol (G)", lineas: ["Mi","Sol","Si","Re","Fa"], espacios: ["Fa","La","Do","Mi"] },
-  fa:  { id: "fa",  nombre: "Clave de Fa (F)",  lineas: ["Sol","Si","Re","Fa","La"], espacios: ["La","Do","Mi","Sol"] },
-  do:  { id: "do",  nombre: "Clave de Do (C en 3ª)", lineas: ["Fa","La","Do","Mi","Sol"], espacios: ["Sol","Si","Re","Fa"] },
+  sol: { id: "sol", nombre: "Clave de Sol (G)",       corto: "Sol", glifo: "", refPos: 2, refNote: 4 }, // L2 = Sol
+  fa:  { id: "fa",  nombre: "Clave de Fa (F)",        corto: "Fa",  glifo: "", refPos: 6, refNote: 3 }, // L4 = Fa
+  do:  { id: "do",  nombre: "Clave de Do (3ª línea)", corto: "Do",  glifo: "", refPos: 4, refNote: 0 }, // L3 = Do
 };
+
+function noteAt(claveId, deg) {
+  const c = CLAVES[claveId];
+  const idx = ((c.refNote + (deg - c.refPos)) % 7 + 7) % 7;
+  return NOTES[idx];
+}
+const gradoEsLinea = deg => ((deg % 2) + 2) % 2 === 0;
+const enPentagrama = deg => deg >= 0 && deg <= 8;
+function gradoEtiqueta(deg) {
+  return gradoEsLinea(deg) ? "L" + (deg / 2 + 1) : "E" + ((deg - 1) / 2 + 1);
+}
+
+/* Mapa de notas de la etapa: las del pentagrama y, aparte, las adicionales */
+function pillsDeEtapa(etapa) {
+  const dentro = etapa.grados.filter(enPentagrama);
+  const fuera = etapa.grados.filter(d => !enPentagrama(d));
+  const pill = (clase, txt) => `<span class="pill ${clase}">${txt}</span>`;
+  const html = dentro.map(d =>
+    pill(gradoEsLinea(d) ? "linea" : "espacio", `${gradoEtiqueta(d)}: <strong>${noteAt(clave, d)}</strong>`)
+  );
+  if (fuera.length) {
+    const notas = [...new Set(fuera.map(d => noteAt(clave, d)))].join(" · ");
+    html.push(pill("extra", `Fuera del pentagrama: <strong>${notas}</strong>`));
+  }
+  return html.join("");
+}
+
+/* =======================
+   Ruta: 3 guías, cada una en etapas de 8 compases
+   ======================= */
+const MEASURES = 8;              // compases por etapa
+const NOTES_PER_MEASURE = 4;
+
+const GUIA_META = {
+  lineas: {
+    id: "lineas", nombre: "Líneas", icono: "▬",
+    intro: "Solo notas en las líneas del pentagrama. Es la guía de líneas de Musicala, compás por compás.",
+    titulos: ["2 líneas", "3 líneas", "4 líneas", "5 líneas", "Líneas + adicional grave"],
+  },
+  espacios: {
+    id: "espacios", nombre: "Espacios", icono: "▭",
+    intro: "Solo notas en los espacios. Es la guía de espacios de Musicala, compás por compás.",
+    titulos: ["2 espacios", "3 espacios", "4 espacios", "Espacios + agudo", "Espacios + grave"],
+  },
+  mixto: {
+    id: "mixto", nombre: "Líneas + espacios", icono: "▩",
+    intro: "Lectura combinada: todo el pentagrama, ampliando el ámbito etapa tras etapa.",
+    titulos: null, // se generan solas: "Etapa 1" … "Etapa 14"
+  },
+};
+
+/* Construye la ruta a partir de los compases transcritos */
+function construirGuias() {
+  return Object.keys(GUIA_META).map(gid => {
+    const meta = GUIA_META[gid];
+    const compases = GUIAS_RAW[gid];
+    const nEtapas = compases.length / MEASURES;
+    const etapas = [];
+    for (let e = 0; e < nEtapas; e++) {
+      const bloque = compases.slice(e * MEASURES, (e + 1) * MEASURES);
+      const grados = [...new Set(bloque.flat())].sort((a, b) => a - b);
+      etapas.push({
+        id: `${gid[0].toUpperCase()}${e + 1}`,
+        titulo: meta.titulos ? meta.titulos[e] : `${grados.length} notas`,
+        compases: bloque,
+        grados,
+        desdeCompas: e * MEASURES + 1,
+      });
+    }
+    return { ...meta, etapas };
+  });
+}
+const GUIAS = construirGuias();
 
 /* ----- Estado ----- */
 let clave = "sol";
-let modo = "lineas";             // lineas | espacios | explorar
-let quizIndex = Math.floor(Math.random() * 5);
-let respuesta = null;
+let guiaIdx = 0;
+let etapaIdx = 0;
+let cursor = 0;      // compás actual (0..7)
+let progreso = 0;    // compases ya leídos (0..8)
+let showNames = false;
+let presentando = false;
+let presentZoom = 1;
+
+const guiaActual = () => GUIAS[guiaIdx];
+const etapaActual = () => guiaActual().etapas[etapaIdx];
 
 /* ----- DOM ----- */
-const staffHero = document.getElementById("staffHero");
-const staffQuiz = document.getElementById("staffQuiz");
+const $ = id => document.getElementById(id);
+const staffHero      = $("staffHero");
+const claveChips     = $("claveChips");
+const guiaTabs       = $("guiaTabs");
+const rutaChips      = $("rutaChips");
+const rutaTitulo     = $("rutaTitulo");
+const rutaDesc       = $("rutaDesc");
+const rutaClaveTxt   = $("rutaClaveTxt");
+const rutaProgreso   = $("rutaProgreso");
+const handImgs       = $("handImgs");
+const rutaPills      = $("rutaPills");
+const btnPrevSys     = $("btnPrevSys");
+const btnNextSys     = $("btnNextSys");
+const staffEjercicio = $("staffEjercicio");
+const compasHoyTxt   = $("compasHoyTxt");
+const progresoBar    = $("progresoBar");
+const progresoTxt    = $("progresoTxt");
+const btnCompasPrev  = $("btnCompasPrev");
+const btnCompasNext  = $("btnCompasNext");
+const btnLeido       = $("btnLeido");
+const btnReiniciar   = $("btnReiniciar");
+const btnNombres     = $("btnNombres");
+const btnPresentar   = $("btnPresentar");
 
-const claveChips = document.getElementById("claveChips");
-const claveQuizChips = document.getElementById("claveQuizChips");
-const modoQuizChips = document.getElementById("modoQuizChips");
-
-const labelClaveNombre = document.getElementById("labelClaveNombre");
-const labelModoTxt = document.getElementById("labelModoTxt");
-const pillsMapa = document.getElementById("pillsMapa");
-const opcionesQuiz = document.getElementById("opcionesQuiz");
-const feedback = document.getElementById("feedback");
-const btnNext = document.getElementById("btnNext");
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (name, attrs = {}) => {
+  const n = document.createElementNS(SVGNS, name);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+};
+const txt = (attrs, content) => { const t = el("text", attrs); t.textContent = content; return t; };
 
 /* =======================
-   Dibujo de Pentagrama
+   Dibujo de un pentagrama
+   Geometría: S = distancia entre líneas. y(grado) = yL1 - grado * S/2
    ======================= */
-function drawStaff(svg, { highlightIndex = null, highlightType = "linea", claveId = "sol" } = {}) {
-  const W = 560, H = 180;
-  const padX = 40, padY = 24;
-  const s = (H - padY * 2) / 4;
+function dibujarClave(g, claveId, S, xClef, yL1) {
+  const c = CLAVES[claveId];
+  // SMuFL: la base del glifo se apoya en la línea que la clave nombra (refPos)
+  // y el glifo está diseñado para un pentagrama de 4 espacios = font-size.
+  g.appendChild(txt({
+    x: xClef + S * 0.25,
+    y: yL1 - (c.refPos / 2) * S,
+    class: "clef",
+    "font-size": S * 4,
+  }, c.glifo));
+}
 
-  const yLine = i => (H - padY) - i * s;   // 0 = línea inferior
-  const ySpace = i => yLine(i) - s / 2;    // 0 = espacio inferior
+function ledgersDe(deg) {
+  const out = [];
+  if (deg <= -2) for (let d = -2; d >= deg; d -= 2) out.push(d);
+  if (deg >= 10) for (let d = 10; d <= deg; d += 2) out.push(d);
+  // una nota en espacio fuera del pentagrama (p. ej. -1 o 9) no necesita línea adicional
+  return out.filter(d => gradoEsLinea(d));
+}
 
+/* Pentagrama de referencia (hero): etiquetas L1–L5 / E1–E4 */
+function drawStaffHero(svg, claveId) {
+  const S = 26, W = 620, H = 230;
+  const yL1 = 150, xStart = 130, xEnd = W - 24;
+  const y = deg => yL1 - (deg / 2) * S;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.innerHTML = "";
+  const g = el("g");
 
-  // Fondo
-  const defs = `<defs><linearGradient id="bg" x1="0" x2="1">
-    <stop offset="0%" stop-color="#f7f8ff"/><stop offset="100%" stop-color="#eef1ff"/></linearGradient></defs>`;
-  svg.insertAdjacentHTML("afterbegin", defs);
-
-  const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  bg.setAttribute("x", 0);
-  bg.setAttribute("y", 0);
-  bg.setAttribute("width", W);
-  bg.setAttribute("height", H);
-  bg.setAttribute("rx", 16);
-  bg.setAttribute("fill", "url(#bg)");
-  svg.appendChild(bg);
-
-  // Clave
-  const staffHeight = H - padY * 2;
-  const clefSize = staffHeight * 0.8;
-  const claveSymbol = (claveId === "fa" ? "𝄢" : (claveId === "do" ? "𝄡" : "𝄞"));
-  const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  t.setAttribute("x", padX + 16);
-  t.setAttribute("y", yLine(0) - s * 0.4);
-  t.setAttribute("font-size", clefSize);
-  t.setAttribute("font-family", "'Noto Music', sans-serif");
-  t.textContent = claveSymbol;
-  svg.appendChild(t);
-
-  // Líneas del pentagrama
   for (let i = 0; i < 5; i++) {
-    const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    l.setAttribute("x1", padX);
-    l.setAttribute("x2", W - padX);
-    l.setAttribute("y1", yLine(i));
-    l.setAttribute("y2", yLine(i));
-    l.setAttribute("stroke", "#111528");
-    l.setAttribute("stroke-width", 2);
-    l.setAttribute("opacity", "0.95");
-    svg.appendChild(l);
-  }
-
-  // Etiquetas L1–L5 y E1–E4 a la izquierda
-  const labelStyle = "font-size:11px; font-weight:700; fill:#6b7280;";
-  for (let i = 0; i < 5; i++) {
-    const tx = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    tx.setAttribute("x", padX - 26);
-    tx.setAttribute("y", yLine(i) + 4);
-    tx.setAttribute("style", labelStyle);
-    tx.textContent = "L" + (i + 1);
-    svg.appendChild(tx);
+    g.appendChild(el("line", { x1: xStart, x2: xEnd, y1: y(i * 2), y2: y(i * 2), class: "staff-line" }));
+    g.appendChild(txt({ x: xStart - 16, y: y(i * 2) + 5, class: "staff-label", "text-anchor": "end" }, "L" + (i + 1)));
   }
   for (let i = 0; i < 4; i++) {
-    const tx = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    tx.setAttribute("x", padX - 26);
-    tx.setAttribute("y", ySpace(i) + 4);
-    tx.setAttribute("style", labelStyle);
-    tx.textContent = "E" + (i + 1);
-    svg.appendChild(tx);
+    g.appendChild(txt({ x: xStart - 16, y: y(i * 2 + 1) + 5, class: "staff-label soft", "text-anchor": "end" }, "E" + (i + 1)));
   }
+  g.appendChild(el("line", { x1: xStart, x2: xStart, y1: y(0), y2: y(8), class: "staff-line" }));
+  dibujarClave(g, claveId, S, xStart + 14, yL1);
 
-  // Recuadro (quiz)
-  if (highlightIndex !== null) {
-    const y = highlightType === "linea" ? yLine(highlightIndex) : ySpace(highlightIndex);
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute("x", padX + 80);
-    rect.setAttribute("width", 400);
-    rect.setAttribute("height", 14);
-    rect.setAttribute("rx", 4);
-    rect.setAttribute("fill", "#0C41C420");
-    rect.setAttribute("stroke", "#0C41C4");
-    rect.setAttribute("stroke-width", 1.5);
-    rect.setAttribute("y", y - 7);
-    svg.appendChild(rect);
+  // Notas de referencia: el nombre de cada línea y cada espacio en esta clave
+  for (let d = 0; d <= 8; d++) {
+    const cx = xStart + 150 + d * ((xEnd - xStart - 175) / 8);
+    const cy = y(d);
+    g.appendChild(el("ellipse", {
+      cx, cy, rx: S * 0.58, ry: S * 0.44,
+      transform: `rotate(-20 ${cx} ${cy})`,
+      class: gradoEsLinea(d) ? "notehead linea" : "notehead espacio",
+    }));
+    g.appendChild(txt({ x: cx, y: y(8) - S * 0.9, class: "note-name", "text-anchor": "middle" }, noteAt(claveId, d)));
   }
+  svg.appendChild(g);
 }
 
-/* =======================
-   UI / Chips
-   ======================= */
-function renderChips() {
-  // Claves (Hero)
-  if (claveChips) {
-    claveChips.innerHTML = "";
-    Object.values(CLAVES).forEach(c => {
-      const chip = document.createElement("button");
-      chip.className = "chip";
-      chip.textContent = c.id.toUpperCase();
-      if (c.id === clave) chip.classList.add("active");
-      chip.onclick = () => { clave = c.id; updateAll(); };
-      claveChips.appendChild(chip);
-    });
-  }
+/* Ejercicio: 8 compases × 4 negras, en filas */
+function drawEjercicio(svg, opts) {
+  const {
+    claveId, compases, cursor, progreso, showNames,
+    S = 16, perRow = 4, grande = false,
+  } = opts;
 
-  // Claves (Quiz)
-  if (claveQuizChips) {
-    claveQuizChips.innerHTML = "";
-    Object.values(CLAVES).forEach(c => {
-      const chip = document.createElement("button");
-      chip.className = "chip";
-      chip.textContent = c.id.toUpperCase();
-      if (c.id === clave) chip.classList.add("active");
-      chip.onclick = () => { clave = c.id; updateAll(); };
-      claveQuizChips.appendChild(chip);
-    });
-  }
+  const measureW = S * (grande ? 12.5 : 11);
+  const clefW = S * 3.6;
+  const padL = S * 0.8, padR = S * 0.8;
+  const staffH = S * 4;
+  // Aire suficiente para 2 líneas adicionales arriba/abajo + nº de compás + nombres
+  const rowPadTop = S * 6;
+  const rowPadBot = S * 4;
+  const rowH = staffH + rowPadTop + rowPadBot;
+  const rows = Math.ceil(compases.length / perRow);
+  const W = padL + clefW + measureW * perRow + padR;
+  const H = rows * rowH + S;
 
-  // Modo (en el Quiz)
-  if (modoQuizChips) {
-    modoQuizChips.innerHTML = "";
-    ["lineas", "espacios", "explorar"].forEach(m => {
-      const chip = document.createElement("button");
-      chip.className = "chip";
-      chip.textContent = m[0].toUpperCase() + m.slice(1);
-      if (m === modo) chip.classList.add("active");
-      chip.onclick = () => { modo = m; updateAll(); };
-      modoQuizChips.appendChild(chip);
-    });
-  }
-}
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = "";
 
-/* =======================
-   Render principal
-   ======================= */
-function updateAll() {
-  const data = CLAVES[clave];
-  labelClaveNombre.textContent = data.nombre;
-  labelModoTxt.textContent = modo === "lineas" ? "líneas" : "espacios";
+  const yL1 = r => S * 0.5 + r * rowH + rowPadTop + staffH;
+  const y = (r, deg) => yL1(r) - (deg / 2) * S;
 
-  // Hero
-  drawStaff(staffHero, { claveId: clave });
+  compases.forEach((notas, m) => {
+    const r = Math.floor(m / perRow);
+    const col = m % perRow;
+    const xLeft = padL + clefW + col * measureW;
+    const xRight = xLeft + measureW;
+    const leido = m < progreso;
+    const esHoy = m === cursor;
 
-  // Lista de referencia para el quiz (texto arriba de las opciones)
-  pillsMapa.innerHTML = (modo === "lineas" ? data.lineas : data.espacios)
-    .map(n => `<span>${n}</span>`).join("");
+    const g = el("g", { class: `compas${esHoy ? " hoy" : ""}${leido ? " leido" : ""}` });
 
-  // Quiz
-  renderQuiz();
+    // Zona del compás
+    if (leido || esHoy) {
+      g.appendChild(el("rect", {
+        x: xLeft, y: y(r, 8) - S * 3, width: measureW, height: staffH + S * 6, rx: S * 0.35,
+        class: esHoy ? "compas-bg hoy" : "compas-bg leido",
+      }));
+    }
 
-  // Refrescar chips activos
-  renderChips();
-}
+    // Número de compás
+    const yNum = y(r, 8) - S * 4.4;
+    g.appendChild(txt({
+      x: xLeft + measureW / 2, y: yNum,
+      class: "compas-num", "text-anchor": "middle", "font-size": S * 0.8,
+    }, m + 1));
+    if (leido) {
+      g.appendChild(txt({
+        x: xRight - S * 0.5, y: yNum, class: "compas-check", "text-anchor": "end", "font-size": S * 0.9,
+      }, "✓"));
+    }
 
-/* =======================
-   Quiz
-   ======================= */
-function renderQuiz() {
-  const data = CLAVES[clave];
-  const arr = (modo === "lineas") ? data.lineas : data.espacios;
+    // Notas
+    notas.forEach((deg, k) => {
+      const cx = xLeft + measureW * (k + 0.5) / NOTES_PER_MEASURE;
+      const cy = y(r, deg);
 
-  quizIndex = Math.floor(Math.random() * arr.length);
-  respuesta = arr[quizIndex];
+      ledgersDe(deg).forEach(d => {
+        g.appendChild(el("line", {
+          x1: cx - S * 0.95, x2: cx + S * 0.95, y1: y(r, d), y2: y(r, d), class: "ledger",
+        }));
+      });
 
-  drawStaff(staffQuiz, {
-    highlightIndex: quizIndex,
-    highlightType: (modo === "lineas") ? "linea" : "espacio",
-    claveId: clave
-  });
+      g.appendChild(el("ellipse", {
+        cx, cy, rx: S * 0.58, ry: S * 0.44,
+        transform: `rotate(-20 ${cx} ${cy})`,
+        class: "notehead",
+      }));
 
-  const opts = arr.slice().sort(() => Math.random() - 0.5);
-  opcionesQuiz.innerHTML = opts.map(o => `<button>${o}</button>`).join("");
-  feedback.textContent = "";
-  opcionesQuiz.querySelectorAll("button").forEach(b => {
-    b.onclick = () => {
-      if (b.textContent === respuesta) {
-        feedback.textContent = "✅ Correcto";
-        feedback.className = "feedback correct";
-      } else {
-        feedback.textContent = "❌ Incorrecto";
-        feedback.className = "feedback wrong";
+      // Plica: hacia arriba si la nota está por debajo de la línea central (L3 = grado 4)
+      const arriba = deg < 4;
+      const sx = arriba ? cx + S * 0.52 : cx - S * 0.52;
+      const sy = arriba ? cy - S * 3.3 : cy + S * 3.3;
+      g.appendChild(el("line", { x1: sx, x2: sx, y1: cy, y2: sy, class: "stem" }));
+
+      if (showNames) {
+        g.appendChild(txt({
+          x: cx, y: y(r, 8) - S * 3,
+          class: "note-name-sm", "text-anchor": "middle", "font-size": S * 0.85,
+        }, noteAt(claveId, deg)));
       }
-    };
+    });
+
+    // Barra de compás
+    g.appendChild(el("line", {
+      x1: xRight, x2: xRight, y1: y(r, 0), y2: y(r, 8),
+      class: col === perRow - 1 ? "barline final" : "barline",
+    }));
+
+    svg.appendChild(g);
+  });
+
+  // Pentagramas + clave (encima del fondo, debajo de nada)
+  for (let r = 0; r < rows; r++) {
+    const g = el("g", { class: "staff-group" });
+    const xStart = padL + clefW, xEnd = padL + clefW + measureW * perRow;
+    for (let i = 0; i < 5; i++) {
+      g.appendChild(el("line", { x1: xStart, x2: xEnd, y1: y(r, i * 2), y2: y(r, i * 2), class: "staff-line" }));
+    }
+    g.appendChild(el("line", { x1: xStart, x2: xStart, y1: y(r, 0), y2: y(r, 8), class: "barline" }));
+    dibujarClave(g, claveId, S, padL, yL1(r));
+    svg.insertBefore(g, svg.firstChild);
+  }
+}
+
+/* =======================
+   Mano de referencia
+   ======================= */
+function handImgSrc(modo, claveId) {
+  return `${modo === "lineas" ? "Lineas" : "Espacios"} clave de ${claveId}.png`;
+}
+function renderHand(container, claveId, guiaId) {
+  container.innerHTML = "";
+  const modos = guiaId === "mixto" ? ["lineas", "espacios"] : [guiaId];
+  modos.forEach(modo => {
+    const src = handImgSrc(modo, claveId);
+    const etiqueta = modo === "lineas" ? "Líneas" : "Espacios";
+    const cap = `${etiqueta} · Clave de ${CLAVES[claveId].corto}`;
+    const fig = document.createElement("figure");
+    fig.className = "hand";
+    const img = document.createElement("img");
+    img.className = "hand-thumb";
+    img.src = src;
+    img.alt = `Mano de referencia para ${etiqueta} en clave de ${CLAVES[claveId].corto}`;
+    img.addEventListener("click", () => openLightbox(src, cap));
+    const fc = document.createElement("figcaption");
+    fc.className = "muted text-sm mt-2";
+    fc.innerHTML = `<strong>${etiqueta}</strong> · Clave de ${CLAVES[claveId].corto}`;
+    fig.append(img, fc);
+    container.appendChild(fig);
   });
 }
 
 /* =======================
-   Eventos
+   Progreso (persistencia por clave + etapa)
    ======================= */
-if (btnNext) btnNext.onclick = renderQuiz;
-
-// Primera carga
-renderChips();
-updateAll();
+const storeKey = () => `mus_prog_${clave}_${guiaActual().id}_${etapaActual().id}`;
+function cargarProgreso() {
+  try {
+    const raw = localStorage.getItem(storeKey());
+    const o = raw ? JSON.parse(raw) : null;
+    progreso = o?.progreso ?? 0;
+    cursor = o?.cursor ?? 0;
+  } catch { progreso = 0; cursor = 0; }
+}
+function guardarProgreso() {
+  try { localStorage.setItem(storeKey(), JSON.stringify({ progreso, cursor })); } catch {}
+}
 
 /* =======================
-   Lightbox (manos)
+   Chips y pestañas
    ======================= */
-const lightbox = document.getElementById("lightbox");
-const lightboxImg = document.getElementById("lightboxImg");
-const lightboxCap = document.getElementById("lightboxCap");
-const closeBtn = document.querySelector(".lightbox-close");
-
-document.querySelectorAll("[data-enlarge]").forEach(img => {
-  img.addEventListener("click", () => {
-    lightboxImg.src = img.dataset.enlarge;
-    lightboxCap.textContent = img.alt;
-    lightbox.setAttribute("aria-hidden", "false");
+function renderClaveChips(container) {
+  if (!container) return;
+  container.innerHTML = "";
+  Object.values(CLAVES).forEach(c => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (c.id === clave ? " active" : "");
+    chip.innerHTML = `<span class="chip-glifo">${c.glifo}</span> ${c.corto}`;
+    chip.onclick = () => { clave = c.id; cargarProgreso(); updateAll(); };
+    container.appendChild(chip);
   });
+}
+function renderGuiaTabs() {
+  if (!guiaTabs) return;
+  guiaTabs.innerHTML = "";
+  GUIAS.forEach((g, i) => {
+    const t = document.createElement("button");
+    t.className = "tab" + (i === guiaIdx ? " active" : "");
+    t.innerHTML = `<span class="tab-ico">${g.icono}</span> ${g.nombre} <span class="tab-n">${g.etapas.length} etapas</span>`;
+    t.onclick = () => { guiaIdx = i; etapaIdx = 0; cargarProgreso(); updateAll(); };
+    guiaTabs.appendChild(t);
+  });
+}
+function renderRutaChips() {
+  if (!rutaChips) return;
+  rutaChips.innerHTML = "";
+  guiaActual().etapas.forEach((e, i) => {
+    const chip = document.createElement("button");
+    chip.className = "chip step" + (i === etapaIdx ? " active" : "");
+    chip.innerHTML = `<span class="step-id">${e.id}</span> ${e.titulo}`;
+    chip.onclick = () => { etapaIdx = i; cargarProgreso(); updateAll(); };
+    rutaChips.appendChild(chip);
+  });
+}
+
+/* =======================
+   Render de la ruta
+   ======================= */
+function renderRuta() {
+  const guia = guiaActual();
+  const etapa = etapaActual();
+  cursor = Math.min(cursor, MEASURES - 1);
+
+  rutaTitulo.textContent = `${etapa.id} · ${etapa.titulo}`;
+  rutaDesc.textContent = `${guia.intro} Compases ${etapa.desdeCompas}–${etapa.desdeCompas + MEASURES - 1} de la guía original.`;
+  rutaClaveTxt.textContent = CLAVES[clave].nombre;
+  rutaProgreso.textContent = `Etapa ${etapaIdx + 1} de ${guia.etapas.length}`;
+
+  drawEjercicio(staffEjercicio, {
+    claveId: clave, compases: etapa.compases, cursor, progreso, showNames, S: 16, perRow: 4,
+  });
+  renderHand(handImgs, clave, guia.id);
+
+  rutaPills.innerHTML = pillsDeEtapa(etapa);
+
+  compasHoyTxt.textContent = `Compás ${cursor + 1}`;
+  progresoBar.style.width = Math.round(progreso / MEASURES * 100) + "%";
+  progresoTxt.textContent = `${progreso}/${MEASURES} compases leídos`;
+
+  btnPrevSys.disabled = etapaIdx === 0;
+  btnNextSys.disabled = etapaIdx === guia.etapas.length - 1;
+  btnCompasPrev.disabled = cursor === 0;
+  btnCompasNext.disabled = cursor === MEASURES - 1;
+  btnNombres.setAttribute("aria-pressed", String(showNames));
+  btnNombres.textContent = showNames ? "🙈 Ocultar nombres" : "👁 Mostrar nombres";
+
+  if (presentando) renderPresentacion();
+}
+
+function updateAll() {
+  drawStaffHero(staffHero, clave);
+  renderClaveChips(claveChips);
+  renderGuiaTabs();
+  renderRutaChips();
+  renderRuta();
+}
+
+/* =======================
+   Modo presentación (salón / pantalla grande)
+   ======================= */
+const present        = $("present");
+const presentStaff   = $("presentStaff");
+const presentTitulo  = $("presentTitulo");
+const presentClave   = $("presentClave");
+const presentPills   = $("presentPills");
+const presentCompas  = $("presentCompas");
+
+function renderPresentacion() {
+  const etapa = etapaActual();
+  presentTitulo.textContent = `${guiaActual().nombre} · ${etapa.id} · ${etapa.titulo}`;
+  presentClave.innerHTML = `<span class="chip-glifo">${CLAVES[clave].glifo}</span> ${CLAVES[clave].nombre}`;
+  presentCompas.textContent = `Compás ${cursor + 1} de ${MEASURES}`;
+  $("presentClaves")?.querySelectorAll("button[data-clave]").forEach(b => {
+    b.classList.toggle("active", b.dataset.clave === clave);
+  });
+  presentPills.innerHTML = pillsDeEtapa(etapa);
+  drawEjercicio(presentStaff, {
+    claveId: clave, compases: etapa.compases, cursor, progreso, showNames,
+    S: 34 * presentZoom, perRow: 4, grande: true,
+  });
+}
+
+function abrirPresentacion() {
+  presentando = true;
+  present.setAttribute("aria-hidden", "false");
+  document.body.classList.add("presentando");
+  renderPresentacion();
+  present.requestFullscreen?.().catch(() => {});
+}
+function cerrarPresentacion() {
+  presentando = false;
+  present.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("presentando");
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+}
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement && presentando) cerrarPresentacion();
 });
 
-if (closeBtn) {
-  closeBtn.addEventListener("click", () => {
-    lightbox.setAttribute("aria-hidden", "true");
-  });
+/* ----- Navegación compartida ----- */
+function irCompas(delta) {
+  const n = cursor + delta;
+  if (n < 0 || n > MEASURES - 1) return;
+  cursor = n; guardarProgreso(); renderRuta();
+}
+function irEtapa(delta) {
+  const n = etapaIdx + delta;
+  if (n < 0 || n > guiaActual().etapas.length - 1) return;
+  etapaIdx = n; cargarProgreso(); updateAll();
+}
+function toggleNombres() { showNames = !showNames; renderRuta(); }
+function marcarLeido() {
+  progreso = Math.max(progreso, cursor + 1);
+  if (cursor < MEASURES - 1) cursor++;
+  guardarProgreso(); renderRuta();
 }
 
-/* =======================
-   Tooltip modo explorar
-   ======================= */
-const exploreTip = document.getElementById("exploreTip");
-function showTip(text) {
-  if (!exploreTip) return;
-  exploreTip.textContent = text;
-  exploreTip.style.display = "block";
-  setTimeout(() => (exploreTip.style.display = "none"), 2000);
+/* ----- Eventos ----- */
+btnPrevSys?.addEventListener("click", () => irEtapa(-1));
+btnNextSys?.addEventListener("click", () => irEtapa(1));
+btnCompasPrev?.addEventListener("click", () => irCompas(-1));
+btnCompasNext?.addEventListener("click", () => irCompas(1));
+btnLeido?.addEventListener("click", marcarLeido);
+btnReiniciar?.addEventListener("click", () => { progreso = 0; cursor = 0; guardarProgreso(); renderRuta(); });
+btnNombres?.addEventListener("click", toggleNombres);
+btnPresentar?.addEventListener("click", abrirPresentacion);
+
+$("presentCerrar")?.addEventListener("click", cerrarPresentacion);
+$("presentPrev")?.addEventListener("click", () => irCompas(-1));
+$("presentNext")?.addEventListener("click", () => irCompas(1));
+$("presentEtapaPrev")?.addEventListener("click", () => irEtapa(-1));
+$("presentEtapaNext")?.addEventListener("click", () => irEtapa(1));
+$("presentNombres")?.addEventListener("click", toggleNombres);
+$("presentMas")?.addEventListener("click", () => { presentZoom = Math.min(1.6, presentZoom + 0.1); renderPresentacion(); });
+$("presentMenos")?.addEventListener("click", () => { presentZoom = Math.max(0.6, presentZoom - 0.1); renderPresentacion(); });
+$("presentClaves")?.addEventListener("click", e => {
+  const b = e.target.closest("button[data-clave]");
+  if (!b) return;
+  clave = b.dataset.clave; cargarProgreso(); updateAll();
+});
+
+document.addEventListener("keydown", e => {
+  if (!presentando) return;
+  const acciones = {
+    ArrowRight: () => irCompas(1),
+    ArrowLeft:  () => irCompas(-1),
+    ArrowDown:  () => irEtapa(1),
+    ArrowUp:    () => irEtapa(-1),
+    Escape:     cerrarPresentacion,
+    n: toggleNombres, N: toggleNombres,
+    "+": () => { presentZoom = Math.min(1.6, presentZoom + 0.1); renderPresentacion(); },
+    "-": () => { presentZoom = Math.max(0.6, presentZoom - 0.1); renderPresentacion(); },
+  };
+  if (acciones[e.key]) { e.preventDefault(); acciones[e.key](); }
+});
+
+/* ----- Tema ----- */
+const themeToggle = $("themeToggle");
+themeToggle?.addEventListener("click", () => {
+  const dark = document.body.getAttribute("data-theme") === "dark";
+  document.body.setAttribute("data-theme", dark ? "light" : "dark");
+  themeToggle.textContent = dark ? "🌗 Modo oscuro" : "☀️ Modo claro";
+  themeToggle.setAttribute("aria-pressed", String(!dark));
+});
+
+/* ----- Lightbox ----- */
+const lightbox = $("lightbox");
+const lightboxImg = $("lightboxImg");
+const lightboxCap = $("lightboxCap");
+function openLightbox(src, cap) {
+  lightboxImg.src = src;
+  lightboxCap.textContent = cap || "";
+  lightbox.setAttribute("aria-hidden", "false");
 }
+document.querySelector(".lightbox-close")?.addEventListener("click", () => lightbox.setAttribute("aria-hidden", "true"));
+lightbox?.addEventListener("click", e => { if (e.target === lightbox) lightbox.setAttribute("aria-hidden", "true"); });
+
+/* =======================
+   Estado por URL: #guia=mixto&etapa=14&clave=fa&nombres=1&presentar=1
+   Sirve para dejar un enlace listo para la clase.
+   ======================= */
+function leerHash() {
+  const p = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const g = GUIAS.findIndex(x => x.id === p.get("guia"));
+  if (g >= 0) guiaIdx = g;
+  if (CLAVES[p.get("clave")]) clave = p.get("clave");
+  const e = parseInt(p.get("etapa"), 10);
+  if (e >= 1 && e <= guiaActual().etapas.length) etapaIdx = e - 1;
+  if (p.get("nombres") === "1") showNames = true;
+  return p.get("presentar") === "1";
+}
+
+/* ----- Init ----- */
+const abrirEnGrande = leerHash();
+cargarProgreso();
+updateAll();
+if (abrirEnGrande) abrirPresentacion();

@@ -11,10 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
 
-  <!-- Estilos -->
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-theme="light">
   <header class="site-header wrap">
     <img src="logo.png" alt="Musicala" class="logo">
     <div class="header-actions">
@@ -32,7 +31,7 @@
             En Musicala leemos como aprendemos a hablar:
             primero <strong>vocales</strong>, luego <strong>consonantes</strong> y después <strong>palabras</strong>.
             Aquí es igual: primero <strong>líneas</strong>, luego <strong>espacios</strong> y finalmente
-            <strong>líneas + espacios</strong>.
+            <strong>líneas + espacios</strong> — paso a paso, sistema por sistema.
           </p>
           <div class="mt-4">
             <div class="muted" style="font-weight:700; margin-bottom:8px">Elige la clave</div>
@@ -41,10 +40,11 @@
         </div>
 
         <div class="staffShell">
-          <svg id="staffHero" viewBox="0 0 560 180" class="staff" role="img" aria-label="Pentagrama principal"></svg>
+          <svg id="staffHero" class="staff hero-staff" role="img" aria-label="Pentagrama principal"></svg>
           <p class="muted mt-2 text-sm">
             Pentagrama = <em>penta</em> (cinco) + <em>gramma</em> (trazo/líneas).
             Son <strong>5 líneas</strong> (L1–L5) y <strong>4 espacios</strong> (E1–E4).
+            Arriba ves cómo se llama cada una en la clave elegida.
           </p>
         </div>
       </div>
@@ -68,7 +68,7 @@
         <h2><span class="k">2.</span> ¿Qué hace la clave?</h2>
         <p class="mt-3 muted">
           La <strong>clave</strong> es una etiqueta que dice: “esta <em>línea</em> se llama así”.
-          Desde ese punto, se cuentan <strong>L1→L5</strong> y los <strong>E1→E4</strong> (espacios) de abajo hacia arriba.
+          Desde ese punto, se cuentan <strong>L1→L5</strong> y los <strong>E1→E4</strong> de abajo hacia arriba.
         </p>
         <div class="mt-3 muted text-sm">
           <ul class="lista">
@@ -83,7 +83,7 @@
         <h2><span class="k">3.</span> ¿Por qué hay varias claves?</h2>
         <p class="mt-3 muted">
           Porque cada voz o instrumento suena en un rango distinto. Cambiando la clave <em>centramos</em> las notas dentro
-          del pentagrama y evitamos usar muchas líneas adicionales. Así la lectura es más <strong>clara y rápida</strong>.
+          del pentagrama y evitamos muchas líneas adicionales. Así la lectura es más <strong>clara y rápida</strong>.
         </p>
         <ul class="mt-3 muted lista">
           <li><strong>Sol:</strong> zonas agudas (violín, flauta, soprano, mano derecha del piano).</li>
@@ -93,64 +93,67 @@
       </div>
     </section>
 
-    <!-- MANOS (con lightbox) -->
-    <section class="mt-8 card p-16">
-      <h2><span class="k">Tip</span>Manos de referencia (mnemotecnia)</h2>
-      <p class="mt-3 muted">
-        Usa estas manos como recordatorio visual del orden <strong>abajo → arriba</strong>.
-        Haz clic en la imagen para verla en grande.
-      </p>
-      <div class="grid2 mt-4">
-        <figure class="hand">
-          <img
-            src="Mano de líneas.png"
-            alt="Mano de referencia para líneas (abajo→arriba)"
-            class="hand-thumb"
-            data-enlarge="Mano de líneas.png"
-          />
-          <figcaption class="muted text-sm mt-2">
-            <strong>Líneas:</strong> nombra de la 1ª a la 5ª (abajo→arriba) según la clave elegida.
-          </figcaption>
-        </figure>
-
-        <figure class="hand">
-          <img
-            src="Mano de espacios.png"
-            alt="Mano de referencia para espacios (abajo→arriba)"
-            class="hand-thumb"
-            data-enlarge="Mano de espacios.png"
-          />
-          <figcaption class="muted text-sm mt-2">
-            <strong>Espacios:</strong> también se leen de abajo hacia arriba.
-          </figcaption>
-        </figure>
-      </div>
-    </section>
-
-    <!-- QUIZ (refuerzo rápido) -->
-    <section class="mt-8 card p-16 quiz">
+    <!-- RUTA DE APRENDIZAJE -->
+    <section class="mt-8 card p-16 ruta">
       <div class="top-flex">
-        <h2><span class="k">4.</span> Ejercicio: ¿Qué nota va aquí?</h2>
-        <div class="chips" id="modoQuizChips"></div>
-        <div class="chips mt-2" id="claveQuizChips"></div>
+        <h2><span class="k">Ruta</span> Aprende paso a paso</h2>
+        <span class="badge" id="rutaProgreso"></span>
+      </div>
+      <p class="mt-2 muted">
+        Son las <strong>guías de lectura de Musicala</strong>, compás por compás: primero <strong>líneas</strong>,
+        luego <strong>espacios</strong> y por último <strong>líneas + espacios</strong>. El ejercicio es el mismo
+        en las tres claves: cambia la clave y cambian los nombres de las notas.
+      </p>
+
+      <div class="guia-tabs mt-3" id="guiaTabs"></div>
+
+      <div class="chips ruta-chips mt-3" id="rutaChips"></div>
+      <div class="flex ruta-sysnav mt-2">
+        <button id="btnPrevSys" class="btn ghost sm">← Etapa anterior</button>
+        <button id="btnNextSys" class="btn ghost sm">Etapa siguiente →</button>
       </div>
 
-      <div class="grid2 mt-4">
-        <div>
-          <svg id="staffQuiz" viewBox="0 0 560 180" class="staff" role="img" aria-label="Ejercicio de identificación"></svg>
-          <p class="muted mt-2 text-sm">El recuadro marca la zona a identificar.</p>
-        </div>
-        <div>
-          <p class="muted">
-            En <strong id="labelClaveNombre"></strong> las <span id="labelModoTxt"></span> (abajo → arriba) son:
-          </p>
-          <div class="listPills" id="pillsMapa"></div>
+      <div class="ruta-head mt-4">
+        <h3 id="rutaTitulo"></h3>
+        <p class="muted text-sm" id="rutaDesc"></p>
+        <p class="muted text-sm">Clave: <strong id="rutaClaveTxt"></strong></p>
+      </div>
 
-          <div class="opts mt-4" id="opcionesQuiz"></div>
-          <div class="mt-4 flex">
-            <span id="feedback" class="feedback" aria-live="polite"></span>
-            <button id="btnNext" class="btn primary">Siguiente</button>
+      <div class="grid2 mt-3 ruta-body">
+        <!-- Ejercicio por compases -->
+        <div class="ejercicio-panel">
+          <div class="ejercicio-head">
+            <span class="badge">Ejercicio · 8 compases × 4 notas</span>
+            <div class="flex">
+              <button id="btnNombres" class="btn ghost sm" aria-pressed="false">👁 Mostrar nombres</button>
+              <button id="btnPresentar" class="btn primary sm">🖥 Ver en grande</button>
+            </div>
           </div>
+          <svg id="staffEjercicio" class="staff exercise" role="img" aria-label="Ejercicio de lectura por compases"></svg>
+
+          <div class="ejercicio-ctrls mt-3">
+            <div class="ctrl-row">
+              <button id="btnCompasPrev" class="btn ghost sm">◀</button>
+              <span class="hoy-chip">Hoy: <strong id="compasHoyTxt"></strong></span>
+              <button id="btnCompasNext" class="btn ghost sm">▶</button>
+              <button id="btnLeido" class="btn primary">Marcar leído ✓</button>
+              <button id="btnReiniciar" class="btn ghost sm">Reiniciar</button>
+            </div>
+            <div class="progreso-wrap mt-2">
+              <div class="progreso-track"><div id="progresoBar" class="progreso-bar"></div></div>
+              <span class="muted text-xs" id="progresoTxt"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Referencia: mano + mapa de notas -->
+        <div class="hand-panel">
+          <h4 class="muted">Mano de referencia <span class="text-xs">(según la clave)</span></h4>
+          <div class="hand-imgs" id="handImgs"></div>
+          <p class="muted text-xs mt-2">
+            Dedos = <strong>líneas</strong> · huecos = <strong>espacios</strong>. Se leen de <strong>abajo → arriba</strong>. Haz clic para ampliar.
+          </p>
+          <div class="listPills mt-3" id="rutaPills"></div>
         </div>
       </div>
     </section>
@@ -160,6 +163,39 @@
     </footer>
   </main>
 
+  <!-- MODO PRESENTACIÓN (pantalla grande para el salón) -->
+  <div id="present" class="present" aria-hidden="true">
+    <div class="present-bar">
+      <div class="present-info">
+        <strong id="presentTitulo"></strong>
+        <span class="present-clave" id="presentClave"></span>
+        <span class="present-compas" id="presentCompas"></span>
+      </div>
+      <div class="present-claves" id="presentClaves">
+        <button class="btn ghost sm" data-clave="sol">Sol</button>
+        <button class="btn ghost sm" data-clave="fa">Fa</button>
+        <button class="btn ghost sm" data-clave="do">Do</button>
+      </div>
+      <div class="present-ctrls">
+        <button id="presentEtapaPrev" class="btn ghost sm" title="Etapa anterior (↑)">⟨⟨</button>
+        <button id="presentPrev" class="btn ghost sm" title="Compás anterior (←)">◀</button>
+        <button id="presentNext" class="btn ghost sm" title="Compás siguiente (→)">▶</button>
+        <button id="presentEtapaNext" class="btn ghost sm" title="Etapa siguiente (↓)">⟩⟩</button>
+        <button id="presentNombres" class="btn ghost sm" title="Mostrar/ocultar nombres (N)">👁 Nombres</button>
+        <button id="presentMenos" class="btn ghost sm" title="Reducir (−)">−</button>
+        <button id="presentMas" class="btn ghost sm" title="Ampliar (+)">+</button>
+        <button id="presentCerrar" class="btn ghost sm" title="Salir (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="present-stage">
+      <svg id="presentStaff" class="staff exercise grande" role="img" aria-label="Ejercicio en pantalla grande"></svg>
+    </div>
+    <div class="present-foot">
+      <div class="listPills" id="presentPills"></div>
+      <span class="present-hint">← → compás · ↑ ↓ etapa · N nombres · + − tamaño · Esc salir</span>
+    </div>
+  </div>
+
   <!-- Lightbox -->
   <div id="lightbox" class="lightbox" aria-hidden="true">
     <button class="lightbox-close" aria-label="Cerrar">×</button>
@@ -167,10 +203,7 @@
     <div id="lightboxCap" class="lightbox-cap"></div>
   </div>
 
-  <!-- Tooltip Modo Explorar -->
-  <div id="exploreTip" class="explore-tip" role="status" aria-live="polite"></div>
-
-  <!-- App -->
+  <script defer src="ejercicios.js"></script>
   <script defer src="app.js"></script>
 </body>
 </html>

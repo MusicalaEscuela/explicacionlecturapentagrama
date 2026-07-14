@@ -2,6 +2,14 @@
    styles.css — Musicala Pentagrama
    ======================= */
 
+/* Claves musicales: Bravura (SMuFL), subconjunto con las 3 claves.
+   Licencia SIL OFL — ver fuentes/Bravura-OFL.txt */
+@font-face {
+  font-family: 'BravuraClaves';
+  src: url('fuentes/bravura-claves.woff2') format('woff2');
+  font-display: block;
+}
+
 :root {
   --bg: #f9faff;
   --card: #ffffff;
@@ -215,6 +223,173 @@ header.site-header {
   z-index: 999;
 }
 
+/* ------------------ Titulares con chip "k" ------------------ */
+.k {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  padding: 2px 9px;
+  border-radius: 100px;
+  margin-right: .5rem;
+  vertical-align: middle;
+}
+
+h2 { font-size: 1.25rem; margin: 0; }
+h3 { margin: 0 0 .25rem; font-size: 1.15rem; }
+h4 { margin: 0 0 .5rem; font-weight: 700; }
+
+.top-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: .8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.lista { padding-left: 1.1rem; }
+.lista li { margin-bottom: .35rem; }
+
+/* ------------------ Ruta de aprendizaje ------------------ */
+.ruta-chips { gap: .4rem; }
+
+.chip.step {
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  color: var(--text);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+.chip.step:hover { background: color-mix(in srgb, var(--accent) 20%, var(--card)); }
+.chip.step.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.chip.step .step-id {
+  font-weight: 800;
+  font-size: .72rem;
+  background: rgba(0,0,0,.12);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+.chip.step.active .step-id { background: rgba(255,255,255,.25); }
+.chip.step[data-tipo="espacios"] { border-style: dashed; }
+.chip.step[data-tipo="mixto"] { border-width: 2px; }
+
+.ruta-body { align-items: start; }
+.ruta-head { margin-bottom: .75rem; }
+.ruta-nav { gap: .5rem; }
+
+.btn.ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
+  padding: .5rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all .2s;
+}
+.btn.ghost:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.pill {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  color: var(--text);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-weight: 500;
+  font-size: .85rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.pill.espacio { border-style: dashed; }
+.pill.extra {
+  background: color-mix(in srgb, #b45309 14%, var(--card));
+  border-color: color-mix(in srgb, #b45309 45%, transparent);
+  color: var(--text);
+}
+
+/* ------------------ Mano dinámica (SVG) ------------------ */
+.hand-panel {
+  background: color-mix(in srgb, var(--accent) 5%, var(--card));
+  border-radius: var(--radius);
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.hand-svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
+.hand-imgs { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+.hand-imgs figure { margin: 0; flex: 1 1 220px; }
+
+.hand-line { font: 800 15px var(--font); fill: var(--accent); }
+.hand-space { font: 700 13px var(--font); fill: var(--accent); }
+.hand-mini { font: 700 10px var(--font); fill: var(--muted); }
+
+/* ------------------ Notas y etiquetas en el pentagrama ------------------ */
+.staff-label { font: 700 11px var(--font); fill: var(--muted); }
+.staff-label.soft { opacity: .7; }
+.note-name { font: 800 12px var(--font); fill: var(--accent); }
+/* Estos llevan font-size en unidades del pentagrama (atributo SVG): aquí solo familia y color */
+.note-name-sm { font-family: var(--font); font-weight: 700; fill: var(--accent); }
+.compas-num   { font-family: var(--font); font-weight: 800; fill: var(--muted); }
+.compas-check { font-family: var(--font); font-weight: 800; fill: #16a34a; }
+
+/* ------------------ Panel de ejercicio ------------------ */
+.ejercicio-panel {
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.ejercicio-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.staff.exercise { width: 100%; max-width: 760px; height: auto; }
+
+.ejercicio-ctrls { border-top: 1px solid color-mix(in srgb, var(--accent) 12%, transparent); padding-top: .75rem; }
+.ctrl-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+
+.hoy-chip {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-size: .85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn.sm { padding: .35rem .7rem; font-size: .82rem; border-radius: 8px; }
+
+.progreso-wrap { display: flex; align-items: center; gap: .6rem; }
+.progreso-track {
+  flex: 1;
+  height: 8px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 100px;
+  overflow: hidden;
+}
+.progreso-bar {
+  height: 100%;
+  width: 0;
+  background: #16a34a;
+  border-radius: 100px;
+  transition: width .3s ease;
+}
+
+.ruta-sysnav { gap: .5rem; }
+
 /* ------------------ Manos ------------------ */
 
 .hand-thumb {
@@ -233,36 +408,113 @@ header.site-header {
   transform: scale(1.03);
 }
 
-/* ------------------ Quiz ------------------ */
+/* ------------------ Dibujo del pentagrama ------------------ */
+.staff-line, .barline, .ledger, .stem {
+  stroke: var(--text);
+  stroke-linecap: butt;
+}
+.staff-line { stroke-width: 1.3; opacity: .85; }
+.barline    { stroke-width: 1.6; opacity: .85; }
+.barline.final { stroke-width: 3.2; }
+.ledger     { stroke-width: 1.6; }
+.stem       { stroke-width: 1.7; }
 
-.quiz .opts {
+.notehead { fill: var(--text); }
+.notehead.linea   { fill: var(--accent); }
+.notehead.espacio { fill: color-mix(in srgb, var(--accent) 45%, var(--card)); stroke: var(--accent); stroke-width: 1.2; }
+
+.clef { fill: var(--text); font-family: 'BravuraClaves', serif; }
+
+.compas-bg { fill: transparent; }
+.compas-bg.hoy   { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: var(--accent); stroke-width: 1.6; }
+.compas-bg.leido { fill: color-mix(in srgb, #16a34a 9%, transparent); stroke: #16a34a; stroke-width: 1; stroke-dasharray: 5 4; }
+.compas.hoy .notehead, .compas.hoy .stem, .compas.hoy .ledger { fill: var(--accent); stroke: var(--accent); }
+.compas.hoy .compas-num { fill: var(--accent); }
+.compas:not(.hoy):not(.leido) { opacity: .82; }
+
+.hero-staff { width: 100%; max-width: 620px; }
+
+/* ------------------ Pestañas de guía ------------------ */
+.guia-tabs { display: flex; gap: .5rem; flex-wrap: wrap; }
+.tab {
+  flex: 1 1 200px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: .5rem;
-}
-
-.quiz .opts button {
-  background: var(--card);
-  border: 2px solid var(--accent);
-  border-radius: 10px;
-  padding: .4rem .8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .3s;
-}
-
-.quiz .opts button:hover {
-  background: var(--accent);
-  color: #fff;
-}
-
-.feedback {
+  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+  color: var(--text);
+  border: 2px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 12px;
+  padding: .65rem 1rem;
   font-weight: 700;
-  margin-right: 1rem;
+  cursor: pointer;
+  transition: all .2s;
 }
+.tab:hover { background: color-mix(in srgb, var(--accent) 15%, var(--card)); }
+.tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab-ico { font-size: 1.05rem; }
+.tab-n { font-weight: 500; font-size: .78rem; opacity: .75; }
 
-.feedback.correct { color: green; }
-.feedback.wrong { color: crimson; }
+.chip-glifo { font-family: 'BravuraClaves', serif; font-size: 1.05em; }
+
+/* ------------------ Modo presentación ------------------ */
+.present {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: var(--bg);
+  color: var(--text);
+  display: none;
+  flex-direction: column;
+}
+.present[aria-hidden="false"] { display: flex; }
+body.presentando { overflow: hidden; }
+
+.present-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: .8rem 1.4rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  background: var(--card);
+}
+.present-info { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; font-size: 1.15rem; }
+.present-clave, .present-compas {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border-radius: 100px;
+  padding: 4px 14px;
+  font-weight: 700;
+  font-size: .95rem;
+}
+.present-claves, .present-ctrls { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+.present-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  overflow: auto;
+}
+.staff.exercise.grande { width: 100%; max-width: none; max-height: 100%; }
+
+.present-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: .7rem 1.4rem;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  background: var(--card);
+}
+.present-foot .pill { font-size: 1rem; padding: 6px 14px; }
+.present-hint { color: var(--muted); font-size: .85rem; }
+.present-claves .btn.active { background: var(--accent); color: #fff; }
 
 /* ------------------ Responsivo ------------------ */
 
