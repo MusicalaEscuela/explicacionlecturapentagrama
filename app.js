@@ -101,6 +101,7 @@ let progreso = 0;    // compases ya leídos (0..8)
 let showNames = false;
 let presentando = false;
 let presentZoom = 1;
+let perRowDibujado = 4;   // compases por fila de la última lámina en grande
 
 const guiaActual = () => GUIAS[guiaIdx];
 const etapaActual = () => guiaActual().etapas[etapaIdx];
@@ -195,13 +196,9 @@ function drawStaffHero(svg, claveId) {
   svg.appendChild(g);
 }
 
-/* Ejercicio: 8 compases × 4 negras, en filas */
-function drawEjercicio(svg, opts) {
-  const {
-    claveId, compases, cursor, progreso, showNames,
-    S = 16, perRow = 4, grande = false,
-  } = opts;
-
+/* Geometría del ejercicio en unidades de S (distancia entre líneas).
+   Se calcula aparte para poder medir la lámina antes de dibujarla. */
+function medidasEjercicio(S, perRow, nCompases, grande) {
   const measureW = S * (grande ? 12.5 : 11);
   const clefW = S * 3.6;
   const padL = S * 0.8, padR = S * 0.8;
@@ -210,11 +207,42 @@ function drawEjercicio(svg, opts) {
   const rowPadTop = S * 6;
   const rowPadBot = S * 4;
   const rowH = staffH + rowPadTop + rowPadBot;
-  const rows = Math.ceil(compases.length / perRow);
-  const W = padL + clefW + measureW * perRow + padR;
-  const H = rows * rowH + S;
+  const rows = Math.ceil(nCompases / perRow);
+  return {
+    measureW, clefW, padL, padR, staffH, rowPadTop, rowPadBot, rowH, rows,
+    W: padL + clefW + measureW * perRow + padR,
+    H: rows * rowH + S,
+  };
+}
+
+/* Compases por fila que mejor aprovechan un contenedor de w × h píxeles:
+   el que deja la lámina con la proporción más parecida a la del hueco disponible
+   (en móvil vertical salen 2 por fila y las notas se ven mucho más grandes). */
+function perRowParaCaja(w, h, nCompases, grande) {
+  if (!w || !h) return 4;
+  const objetivo = w / h;
+  let mejor = 4, mejorDif = Infinity;
+  [1, 2, 4, 8].filter(p => p <= nCompases).forEach(p => {
+    const m = medidasEjercicio(1, p, nCompases, grande);
+    const dif = Math.abs(Math.log((m.W / m.H) / objetivo));
+    if (dif < mejorDif) { mejorDif = dif; mejor = p; }
+  });
+  return mejor;
+}
+
+/* Ejercicio: 8 compases × 4 negras, en filas */
+function drawEjercicio(svg, opts) {
+  const {
+    claveId, compases, cursor, progreso, showNames,
+    S = 16, perRow = 4, grande = false,
+  } = opts;
+
+  const {
+    measureW, clefW, padL, staffH, rowPadTop, rowH, rows, W, H,
+  } = medidasEjercicio(S, perRow, compases.length, grande);
 
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
   svg.innerHTML = "";
 
   const yL1 = r => S * 0.5 + r * rowH + rowPadTop + staffH;
@@ -398,7 +426,8 @@ function renderRuta() {
   rutaProgreso.textContent = `Etapa ${etapaIdx + 1} de ${guia.etapas.length}`;
 
   drawEjercicio(staffEjercicio, {
-    claveId: clave, compases: etapa.compases, cursor, progreso, showNames, S: 16, perRow: 4,
+    claveId: clave, compases: etapa.compases, cursor, progreso, showNames,
+    S: 16, perRow: window.innerWidth < 700 ? 2 : 4,
   });
   renderHand(handImgs, clave, guia.id);
 
@@ -430,10 +459,10 @@ function updateAll() {
    Modo presentación (salón / pantalla grande)
    ======================= */
 const present        = $("present");
+const presentStage   = document.querySelector(".present-stage");
 const presentStaff   = $("presentStaff");
 const presentTitulo  = $("presentTitulo");
 const presentClave   = $("presentClave");
-const presentPills   = $("presentPills");
 const presentCompas  = $("presentCompas");
 
 function renderPresentacion() {
@@ -444,29 +473,50 @@ function renderPresentacion() {
   $("presentClaves")?.querySelectorAll("button[data-clave]").forEach(b => {
     b.classList.toggle("active", b.dataset.clave === clave);
   });
-  presentPills.innerHTML = pillsDeEtapa(etapa);
+  // La lámina se ajusta al hueco disponible: el zoom es CSS, no geometría.
+  presentStage?.style.setProperty("--zoom", presentZoom);
+  perRowDibujado = perRowParaCaja(presentStage?.clientWidth, presentStage?.clientHeight, etapa.compases.length, true);
   drawEjercicio(presentStaff, {
     claveId: clave, compases: etapa.compases, cursor, progreso, showNames,
-    S: 34 * presentZoom, perRow: 4, grande: true,
+    S: 34, grande: true, perRow: perRowDibujado,
   });
 }
 
-function abrirPresentacion() {
+async function abrirPresentacion() {
   presentando = true;
   present.setAttribute("aria-hidden", "false");
   document.body.classList.add("presentando");
+  try { await present.requestFullscreen?.(); } catch {}
+  // En móvil, apaisado se ve mucho más grande; si el navegador no deja, el
+  // aviso de "gira el teléfono" (CSS) hace el resto.
+  try { await screen.orientation?.lock?.("landscape"); } catch {}
   renderPresentacion();
-  present.requestFullscreen?.().catch(() => {});
 }
 function cerrarPresentacion() {
   presentando = false;
   present.setAttribute("aria-hidden", "true");
   document.body.classList.remove("presentando");
+  try { screen.orientation?.unlock?.(); } catch {}
   if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
 }
 document.addEventListener("fullscreenchange", () => {
   if (!document.fullscreenElement && presentando) cerrarPresentacion();
 });
+
+/* Al girar el teléfono o cambiar el tamaño, se recalculan los compases por fila */
+let reajusteId;
+function reajustar() {
+  clearTimeout(reajusteId);
+  reajusteId = setTimeout(() => (presentando ? renderPresentacion() : renderRuta()), 150);
+}
+window.addEventListener("resize", reajustar);
+window.addEventListener("orientationchange", reajustar);
+// Solo si de verdad cambia la distribución (evita redibujar en bucle por el scroll del zoom)
+if (presentStage) new ResizeObserver(() => {
+  if (!presentando) return;
+  const p = perRowParaCaja(presentStage.clientWidth, presentStage.clientHeight, MEASURES, true);
+  if (p !== perRowDibujado) reajustar();
+}).observe(presentStage);
 
 /* ----- Navegación compartida ----- */
 function irCompas(delta) {
@@ -480,6 +530,10 @@ function irEtapa(delta) {
   etapaIdx = n; cargarProgreso(); updateAll();
 }
 function toggleNombres() { showNames = !showNames; renderRuta(); }
+function zoom(delta) {
+  presentZoom = Math.min(3, Math.max(0.6, +(presentZoom + delta).toFixed(2)));
+  renderPresentacion();
+}
 function marcarLeido() {
   progreso = Math.max(progreso, cursor + 1);
   if (cursor < MEASURES - 1) cursor++;
@@ -502,8 +556,8 @@ $("presentNext")?.addEventListener("click", () => irCompas(1));
 $("presentEtapaPrev")?.addEventListener("click", () => irEtapa(-1));
 $("presentEtapaNext")?.addEventListener("click", () => irEtapa(1));
 $("presentNombres")?.addEventListener("click", toggleNombres);
-$("presentMas")?.addEventListener("click", () => { presentZoom = Math.min(1.6, presentZoom + 0.1); renderPresentacion(); });
-$("presentMenos")?.addEventListener("click", () => { presentZoom = Math.max(0.6, presentZoom - 0.1); renderPresentacion(); });
+$("presentMas")?.addEventListener("click", () => zoom(0.2));
+$("presentMenos")?.addEventListener("click", () => zoom(-0.2));
 $("presentClaves")?.addEventListener("click", e => {
   const b = e.target.closest("button[data-clave]");
   if (!b) return;
@@ -519,8 +573,8 @@ document.addEventListener("keydown", e => {
     ArrowUp:    () => irEtapa(-1),
     Escape:     cerrarPresentacion,
     n: toggleNombres, N: toggleNombres,
-    "+": () => { presentZoom = Math.min(1.6, presentZoom + 0.1); renderPresentacion(); },
-    "-": () => { presentZoom = Math.max(0.6, presentZoom - 0.1); renderPresentacion(); },
+    "+": () => zoom(0.2),
+    "-": () => zoom(-0.2),
   };
   if (acciones[e.key]) { e.preventDefault(); acciones[e.key](); }
 });

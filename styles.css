@@ -90,10 +90,12 @@ header.site-header {
 .mt-3 { margin-top: 1rem; }
 .mt-4 { margin-top: 1.5rem; }
 .mt-8 { margin-top: 3rem; }
-.mb-8 { margin-bottom: 3rem; }
 
 .text-sm { font-size: 0.9rem; }
 .text-xs { font-size: 0.8rem; }
+.text-center { text-align: center; }
+.p-16 { padding: 1rem; }
+.flex { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 
 .muted { color: var(--muted); }
 .resaltado { color: var(--accent); }
@@ -207,22 +209,6 @@ header.site-header {
   text-align: center;
 }
 
-/* ------------------ Tooltip Explorar ------------------ */
-
-.explore-tip {
-  position: fixed;
-  bottom: 12px;
-  right: 16px;
-  background: var(--accent);
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-  font-size: 0.9rem;
-  display: none;
-  z-index: 999;
-}
-
 /* ------------------ Titulares con chip "k" ------------------ */
 .k {
   display: inline-block;
@@ -287,12 +273,9 @@ h4 { margin: 0 0 .5rem; font-weight: 700; }
   border-radius: 6px;
 }
 .chip.step.active .step-id { background: rgba(255,255,255,.25); }
-.chip.step[data-tipo="espacios"] { border-style: dashed; }
-.chip.step[data-tipo="mixto"] { border-width: 2px; }
 
 .ruta-body { align-items: start; }
 .ruta-head { margin-bottom: .75rem; }
-.ruta-nav { gap: .5rem; }
 
 .btn.ghost {
   background: transparent;
@@ -330,13 +313,8 @@ h4 { margin: 0 0 .5rem; font-weight: 700; }
   padding: 1rem;
   border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
 }
-.hand-svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
 .hand-imgs { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
 .hand-imgs figure { margin: 0; flex: 1 1 220px; }
-
-.hand-line { font: 800 15px var(--font); fill: var(--accent); }
-.hand-space { font: 700 13px var(--font); fill: var(--accent); }
-.hand-mini { font: 700 10px var(--font); fill: var(--muted); }
 
 /* ------------------ Notas y etiquetas en el pentagrama ------------------ */
 .staff-label { font: 700 11px var(--font); fill: var(--muted); }
@@ -493,27 +471,35 @@ body.presentando { overflow: hidden; }
 .present-claves, .present-ctrls { display: flex; gap: .4rem; flex-wrap: wrap; }
 
 .present-stage {
+  --zoom: 1;
   flex: 1;
+  min-height: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem 2rem;
+  padding: .5rem 1rem;
   overflow: auto;
 }
-.staff.exercise.grande { width: 100%; max-width: none; max-height: 100%; }
+/* La lámina llena todo el hueco disponible; el viewBox mantiene la proporción */
+.staff.exercise.grande {
+  width: calc(100% * var(--zoom));
+  height: calc(100% * var(--zoom));
+  max-width: none;
+  flex: 1 0 auto;
+}
+
+.gira-aviso { display: none; }
 
 .present-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding: .7rem 1.4rem;
+  justify-content: center;
+  padding: .5rem 1.4rem;
   border-top: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
   background: var(--card);
 }
-.present-foot .pill { font-size: 1rem; padding: 6px 14px; }
-.present-hint { color: var(--muted); font-size: .85rem; }
+.present-hint { color: var(--muted); font-size: .85rem; text-align: center; }
 .present-claves .btn.active { background: var(--accent); color: #fff; }
 
 /* ------------------ Responsivo ------------------ */
@@ -533,5 +519,51 @@ body.presentando { overflow: hidden; }
   }
   .logo {
     width: 110px;
+  }
+
+  /* Modo grande en móvil: la barra ocupa lo mínimo y el pentagrama, todo lo demás */
+  .present-bar {
+    padding: .4rem .6rem;
+    gap: .4rem;
+    justify-content: center;
+  }
+  .present-info { gap: .4rem; font-size: .9rem; width: 100%; justify-content: center; }
+  .present-info > strong { font-size: .85rem; }
+  .present-clave, .present-compas { font-size: .75rem; padding: 2px 10px; }
+  .present-claves .btn.sm, .present-ctrls .btn.sm { padding: .3rem .5rem; font-size: .78rem; }
+  .present-stage { padding: .25rem; }
+  .present-foot { display: none; }
+}
+
+/* Pantalla baja (móvil apaisado): la barra en una sola fila y mínima,
+   para que casi todo el alto sea pentagrama */
+@media (max-height: 500px) {
+  .present-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: .25rem .5rem;
+    gap: .35rem;
+  }
+  .present-info { width: auto; gap: .35rem; flex-wrap: nowrap; }
+  .present-info > strong { display: none; }
+  .present-clave, .present-compas { font-size: .7rem; padding: 2px 8px; white-space: nowrap; }
+  .present-claves, .present-ctrls { flex-wrap: nowrap; }
+  .present-claves .btn.sm, .present-ctrls .btn.sm { padding: .25rem .45rem; font-size: .75rem; }
+  .present-stage { padding: .2rem; }
+  .present-foot { display: none; }
+}
+
+/* Móvil en vertical: se invita a girar, que es donde se ve grande de verdad */
+@media (max-width: 900px) and (orientation: portrait) and (pointer: coarse) {
+  .gira-aviso {
+    display: block;
+    margin: .4rem 0 0;
+    padding: .35rem .8rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    font-size: .8rem;
+    font-weight: 600;
+    text-align: center;
   }
 }
