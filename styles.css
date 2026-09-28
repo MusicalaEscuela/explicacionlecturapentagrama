@@ -404,6 +404,13 @@ h4 { margin: 0 0 .5rem; font-weight: 700; }
 .clef { fill: var(--text); font-family: 'BravuraClaves', serif; }
 
 .compas-bg { fill: transparent; }
+
+/* Zona sensible al toque de cada compás (invisible) */
+.compas-hit { fill: transparent; }
+.present .compas-hit { cursor: pointer; }
+.present .compas:not(.hoy) .compas-hit:hover {
+  fill: color-mix(in srgb, var(--accent) 8%, transparent);
+}
 .compas-bg.hoy   { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: var(--accent); stroke-width: 1.6; }
 .compas-bg.leido { fill: color-mix(in srgb, #16a34a 9%, transparent); stroke: #16a34a; stroke-width: 1; stroke-dasharray: 5 4; }
 .compas.hoy .notehead, .compas.hoy .stem, .compas.hoy .ledger { fill: var(--accent); stroke: var(--accent); }

@@ -256,7 +256,10 @@ function drawEjercicio(svg, opts) {
     const leido = m < progreso;
     const esHoy = m === cursor;
 
-    const g = el("g", { class: `compas${esHoy ? " hoy" : ""}${leido ? " leido" : ""}` });
+    const g = el("g", {
+      class: `compas${esHoy ? " hoy" : ""}${leido ? " leido" : ""}`,
+      "data-compas": m,
+    });
 
     // Zona del compás
     if (leido || esHoy) {
@@ -313,6 +316,13 @@ function drawEjercicio(svg, opts) {
     g.appendChild(el("line", {
       x1: xRight, x2: xRight, y1: y(r, 0), y2: y(r, 8),
       class: col === perRow - 1 ? "barline final" : "barline",
+    }));
+
+    // Zona sensible al toque: todo el compás, no solo las notas. Va al final
+    // del grupo para quedar por encima y recoger el clic.
+    g.appendChild(el("rect", {
+      x: xLeft, y: r * rowH, width: measureW, height: rowH,
+      class: "compas-hit", "pointer-events": "all",
     }));
 
     svg.appendChild(g);
@@ -520,8 +530,10 @@ if (presentStage) new ResizeObserver(() => {
 
 /* ----- Navegación compartida ----- */
 function irCompas(delta) {
-  const n = cursor + delta;
-  if (n < 0 || n > MEASURES - 1) return;
+  seleccionarCompas(cursor + delta);
+}
+function seleccionarCompas(n) {
+  if (n < 0 || n > MEASURES - 1 || n === cursor) return;
   cursor = n; guardarProgreso(); renderRuta();
 }
 function irEtapa(delta) {
@@ -551,6 +563,11 @@ btnNombres?.addEventListener("click", toggleNombres);
 btnPresentar?.addEventListener("click", abrirPresentacion);
 
 $("presentCerrar")?.addEventListener("click", cerrarPresentacion);
+// En pantalla completa se elige el compás tocándolo, no solo con las flechas
+presentStaff?.addEventListener("click", e => {
+  const g = e.target.closest("[data-compas]");
+  if (g) seleccionarCompas(+g.dataset.compas);
+});
 $("presentPrev")?.addEventListener("click", () => irCompas(-1));
 $("presentNext")?.addEventListener("click", () => irCompas(1));
 $("presentEtapaPrev")?.addEventListener("click", () => irEtapa(-1));
