@@ -33,8 +33,11 @@
             Aquí es igual: primero <strong>líneas</strong>, luego <strong>espacios</strong> y finalmente
             <strong>líneas + espacios</strong> — paso a paso, sistema por sistema.
           </p>
-          <div class="mt-4">
-            <div class="muted" style="font-weight:700; margin-bottom:8px">Elige la clave</div>
+          <div class="flex mt-4">
+            <a class="btn primary practice-link" href="#ejercicios">Ir a los ejercicios ↓</a>
+          </div>
+          <div class="mt-3" role="group" aria-label="Clave del ejemplo">
+            <div class="muted text-sm">Explora las claves</div>
             <div class="chips" id="claveChips"></div>
           </div>
         </div>
@@ -94,10 +97,14 @@
     </section>
 
     <!-- RUTA DE APRENDIZAJE -->
-    <section class="mt-8 card p-16 ruta">
+    <section class="mt-8 card p-16 ruta" id="ejercicios" aria-labelledby="ejerciciosTitulo" tabindex="-1">
       <div class="top-flex">
-        <h2><span class="k">Ruta</span> Aprende paso a paso</h2>
+        <h2 id="ejerciciosTitulo">Ejercicios de lectura</h2>
         <span class="badge" id="rutaProgreso"></span>
+      </div>
+      <div class="practice-clefs mt-3" role="group" aria-labelledby="practiceClefsLabel">
+        <strong id="practiceClefsLabel">Elige la clave para practicar</strong>
+        <div class="chips" id="practiceClefs"></div>
       </div>
       <p class="mt-2 muted">
         Son las <strong>guías de lectura de Musicala</strong>, compás por compás: primero <strong>líneas</strong>,
@@ -116,14 +123,13 @@
       <div class="ruta-head mt-4">
         <h3 id="rutaTitulo"></h3>
         <p class="muted text-sm" id="rutaDesc"></p>
-        <p class="muted text-sm">Clave: <strong id="rutaClaveTxt"></strong></p>
       </div>
 
       <div class="grid2 mt-3 ruta-body">
         <!-- Ejercicio por compases -->
         <div class="ejercicio-panel">
           <div class="ejercicio-head">
-            <span class="badge">Ejercicio · 8 compases × 4 notas</span>
+            <strong class="badge exercise-clef" id="rutaClaveTxt" aria-live="polite"></strong>
             <div class="flex">
               <button id="btnNombres" class="btn ghost sm" aria-pressed="false">👁 Mostrar nombres</button>
               <button id="btnPresentar" class="btn primary sm">🖥 Ver en grande</button>

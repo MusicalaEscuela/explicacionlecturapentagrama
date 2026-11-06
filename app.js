@@ -110,6 +110,7 @@ const etapaActual = () => guiaActual().etapas[etapaIdx];
 const $ = id => document.getElementById(id);
 const staffHero      = $("staffHero");
 const claveChips     = $("claveChips");
+const practiceClefs  = $("practiceClefs");
 const guiaTabs       = $("guiaTabs");
 const rutaChips      = $("rutaChips");
 const rutaTitulo     = $("rutaTitulo");
@@ -388,15 +389,30 @@ function guardarProgreso() {
 /* =======================
    Chips y pestañas
    ======================= */
-function renderClaveChips(container) {
-  if (!container) return;
-  container.innerHTML = "";
+function seleccionarClave(claveId) {
+  if (claveId === clave) return;
+  clave = claveId;
+  cargarProgreso();
+  updateAll();
+}
+
+function crearClaveChips(container) {
   Object.values(CLAVES).forEach(c => {
     const chip = document.createElement("button");
-    chip.className = "chip" + (c.id === clave ? " active" : "");
-    chip.innerHTML = `<span class="chip-glifo">${c.glifo}</span> ${c.corto}`;
-    chip.onclick = () => { clave = c.id; cargarProgreso(); updateAll(); };
+    chip.type = "button";
+    chip.className = "chip";
+    chip.dataset.clave = c.id;
+    chip.innerHTML = `<span class="chip-glifo" aria-hidden="true">${c.glifo}</span> ${c.corto}`;
+    chip.onclick = () => seleccionarClave(c.id);
     container.appendChild(chip);
+  });
+}
+
+function actualizarClaveChips(container) {
+  container.querySelectorAll("button[data-clave]").forEach(button => {
+    const activa = button.dataset.clave === clave;
+    button.classList.toggle("active", activa);
+    button.setAttribute("aria-pressed", String(activa));
   });
 }
 function renderGuiaTabs() {
@@ -433,6 +449,7 @@ function renderRuta() {
   rutaTitulo.textContent = `${etapa.id} · ${etapa.titulo}`;
   rutaDesc.textContent = `${guia.intro} Compases ${etapa.desdeCompas}–${etapa.desdeCompas + MEASURES - 1} de la guía original.`;
   rutaClaveTxt.textContent = CLAVES[clave].nombre;
+  staffEjercicio.setAttribute("aria-label", `Ejercicio de lectura por compases · ${CLAVES[clave].nombre}`);
   rutaProgreso.textContent = `Etapa ${etapaIdx + 1} de ${guia.etapas.length}`;
 
   drawEjercicio(staffEjercicio, {
@@ -459,7 +476,8 @@ function renderRuta() {
 
 function updateAll() {
   drawStaffHero(staffHero, clave);
-  renderClaveChips(claveChips);
+  actualizarClaveChips(claveChips);
+  actualizarClaveChips(practiceClefs);
   renderGuiaTabs();
   renderRutaChips();
   renderRuta();
@@ -480,9 +498,7 @@ function renderPresentacion() {
   presentTitulo.textContent = `${guiaActual().nombre} · ${etapa.id} · ${etapa.titulo}`;
   presentClave.innerHTML = `<span class="chip-glifo">${CLAVES[clave].glifo}</span> ${CLAVES[clave].nombre}`;
   presentCompas.textContent = `Compás ${cursor + 1} de ${MEASURES}`;
-  $("presentClaves")?.querySelectorAll("button[data-clave]").forEach(b => {
-    b.classList.toggle("active", b.dataset.clave === clave);
-  });
+  actualizarClaveChips($("presentClaves"));
   // La lámina se ajusta al hueco disponible: el zoom es CSS, no geometría.
   presentStage?.style.setProperty("--zoom", presentZoom);
   perRowDibujado = perRowParaCaja(presentStage?.clientWidth, presentStage?.clientHeight, etapa.compases.length, true);
@@ -578,7 +594,7 @@ $("presentMenos")?.addEventListener("click", () => zoom(-0.2));
 $("presentClaves")?.addEventListener("click", e => {
   const b = e.target.closest("button[data-clave]");
   if (!b) return;
-  clave = b.dataset.clave; cargarProgreso(); updateAll();
+  seleccionarClave(b.dataset.clave);
 });
 
 document.addEventListener("keydown", e => {
@@ -634,6 +650,8 @@ function leerHash() {
 
 /* ----- Init ----- */
 const abrirEnGrande = leerHash();
+crearClaveChips(claveChips);
+crearClaveChips(practiceClefs);
 cargarProgreso();
 updateAll();
 if (abrirEnGrande) abrirPresentacion();

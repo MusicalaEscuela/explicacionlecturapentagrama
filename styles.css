@@ -249,6 +249,28 @@ h4 { margin: 0 0 .5rem; font-weight: 700; }
 .lista li { margin-bottom: .35rem; }
 
 /* ------------------ Ruta de aprendizaje ------------------ */
+.practice-link { display: inline-block; font-weight: 700; text-decoration: none; }
+#ejercicios { scroll-margin-top: 1rem; }
+
+.practice-clefs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  padding: .75rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+
+.chips .chip[data-clave] {
+  min-height: 44px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--card));
+}
+.chips .chip[data-clave]:hover { border-color: var(--accent); }
+.chips .chip[data-clave].active { background: #0c41c4; color: #fff; border-color: #0c41c4; }
+
 .ruta-chips { gap: .4rem; }
 
 .chip.step {
@@ -333,6 +355,7 @@ h4 { margin: 0 0 .5rem; font-weight: 700; }
   padding: 1rem;
 }
 .ejercicio-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.exercise-clef { font-size: .95rem; font-weight: 800; }
 .staff.exercise { width: 100%; max-width: 760px; height: auto; }
 
 .ejercicio-ctrls { border-top: 1px solid color-mix(in srgb, var(--accent) 12%, transparent); padding-top: .75rem; }
