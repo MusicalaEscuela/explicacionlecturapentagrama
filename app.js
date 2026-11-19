@@ -235,7 +235,7 @@ function perRowParaCaja(w, h, nCompases, grande) {
 function drawEjercicio(svg, opts) {
   const {
     claveId, compases, cursor, progreso, showNames,
-    S = 16, perRow = 4, grande = false,
+    S = 16, perRow = 4, grande = false, notaSola = false,
   } = opts;
 
   const {
@@ -272,7 +272,7 @@ function drawEjercicio(svg, opts) {
 
     // Número de compás
     const yNum = y(r, 8) - S * 4.4;
-    g.appendChild(txt({
+    if (!notaSola) g.appendChild(txt({
       x: xLeft + measureW / 2, y: yNum,
       class: "compas-num", "text-anchor": "middle", "font-size": S * 0.8,
     }, m + 1));
@@ -284,7 +284,7 @@ function drawEjercicio(svg, opts) {
 
     // Notas
     notas.forEach((deg, k) => {
-      const cx = xLeft + measureW * (k + 0.5) / NOTES_PER_MEASURE;
+      const cx = xLeft + measureW * (k + 0.5) / notas.length;
       const cy = y(r, deg);
 
       ledgersDe(deg).forEach(d => {
@@ -481,6 +481,7 @@ function updateAll() {
   renderGuiaTabs();
   renderRutaChips();
   renderRuta();
+  actualizarLecturaVoz();
 }
 
 /* =======================
@@ -509,6 +510,7 @@ function renderPresentacion() {
 }
 
 async function abrirPresentacion() {
+  apagarMicrofonoVoz();
   presentando = true;
   present.setAttribute("aria-hidden", "false");
   document.body.classList.add("presentando");
@@ -647,6 +649,159 @@ function leerHash() {
   if (p.get("nombres") === "1") showNames = true;
   return p.get("presentar") === "1";
 }
+
+/* ----- Lectura por voz ----- */
+const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
+const lecturaVoz = $("lecturaVoz");
+const staffVoz = $("staffVoz");
+const vozMicro = $("vozMicro");
+const vozEstado = $("vozEstado");
+const vozRespuestas = $("vozRespuestas");
+let contextoVoz;
+let notasVoz = [];
+let indiceVoz = 0;
+let microfonoVoz = null;
+
+function apagarMicrofonoVoz() {
+  if (!microfonoVoz) return;
+  const reconocimiento = microfonoVoz;
+  microfonoVoz = null;
+  reconocimiento.abort();
+  vozMicro.textContent = "Activar micrófono";
+  vozEstado.textContent = "Micrófono desactivado.";
+}
+
+function mostrarNotaVoz() {
+  const terminada = indiceVoz === notasVoz.length;
+  staffVoz.hidden = terminada;
+  staffVoz.style.display = terminada ? "none" : "";
+  $("vozProgreso").textContent = `${CLAVES[clave].nombre} · ${indiceVoz} de ${notasVoz.length} notas acertadas`;
+  vozMicro.disabled = terminada || !ReconocimientoVoz;
+  vozRespuestas.querySelectorAll("button").forEach(boton => { boton.disabled = terminada; });
+  if (terminada) return;
+  staffVoz.setAttribute("aria-label", `Nota ${indiceVoz + 1} para identificar en ${CLAVES[clave].nombre}`);
+  drawEjercicio(staffVoz, {
+    claveId: clave, compases: [[notasVoz[indiceVoz]]], perRow: 1, notaSola: true,
+  });
+}
+
+function reiniciarLecturaVoz() {
+  apagarMicrofonoVoz();
+  notasVoz = etapaActual().compases.flat();
+  indiceVoz = 0;
+  vozEstado.textContent = ReconocimientoVoz
+    ? "Activa el micrófono o elige un nombre abajo."
+    : "El reconocimiento de voz no está disponible en este navegador. Elige un nombre abajo.";
+  mostrarNotaVoz();
+}
+
+function actualizarLecturaVoz() {
+  const contexto = `${clave}/${guiaIdx}/${etapaIdx}`;
+  if (contexto === contextoVoz) return;
+  contextoVoz = contexto;
+  reiniciarLecturaVoz();
+}
+
+function responderNotaVoz(nombre) {
+  if (indiceVoz >= notasVoz.length) return;
+  if (nombre !== noteAt(clave, notasVoz[indiceVoz])) {
+    vozEstado.textContent = `«${nombre}» no coincide. Intenta con la misma nota.`;
+    return;
+  }
+  indiceVoz++;
+  mostrarNotaVoz();
+  if (indiceVoz === notasVoz.length) {
+    apagarMicrofonoVoz();
+    vozEstado.textContent = "¡Completaste la práctica de esta etapa!";
+  } else {
+    vozEstado.textContent = `¡Correcto! ${nombre}. Continúa con la siguiente nota.`;
+  }
+}
+
+function nombreReconocido(transcripcion) {
+  const palabra = transcripcion.toLowerCase().normalize("NFD")
+    .replace(/\p{M}/gu, "").replace(/\p{P}/gu, " ").trim()
+    .replace(/^la nota\s+|^nota\s+/, "");
+  return NOTES.find(nota => nota.toLowerCase() === palabra);
+}
+
+vozMicro.addEventListener("click", () => {
+  if (microfonoVoz) {
+    apagarMicrofonoVoz();
+    return;
+  }
+
+  const reconocimiento = new ReconocimientoVoz();
+  microfonoVoz = reconocimiento;
+  reconocimiento.lang = "es-CO";
+  vozMicro.textContent = "Desactivar micrófono";
+  vozEstado.textContent = "Activando micrófono…";
+
+  function escuchar() {
+    try {
+      reconocimiento.start();
+    } catch {
+      apagarMicrofonoVoz();
+      vozEstado.textContent = "No se pudo iniciar el micrófono. Puedes responder con los botones.";
+    }
+  }
+
+  let huboRespuesta = false;
+  reconocimiento.onstart = () => {
+    if (microfonoVoz !== reconocimiento) return;
+    if (!huboRespuesta) vozEstado.textContent = "Escuchando. Di el nombre de la nota.";
+    huboRespuesta = false;
+  };
+  reconocimiento.onresult = evento => {
+    if (microfonoVoz !== reconocimiento || huboRespuesta) return;
+    huboRespuesta = true;
+    const nombre = nombreReconocido(evento.results[evento.resultIndex][0].transcript);
+    if (nombre) responderNotaVoz(nombre);
+    else vozEstado.textContent = "No reconocí un nombre de nota. Prueba de nuevo.";
+  };
+  reconocimiento.onnomatch = () => {
+    if (microfonoVoz !== reconocimiento) return;
+    huboRespuesta = true;
+    vozEstado.textContent = "No reconocí un nombre de nota. Prueba de nuevo.";
+  };
+  reconocimiento.onerror = ({ error }) => {
+    if (microfonoVoz !== reconocimiento) return;
+    apagarMicrofonoVoz();
+    const mensajes = {
+      "not-allowed": "El navegador bloqueó el micrófono. Revisa el permiso del sitio o responde con los botones.",
+      "audio-capture": "El navegador no encontró un micrófono disponible.",
+      "no-speech": "No se detectó voz. Activa el micrófono para continuar.",
+      network: "Falló la conexión con el servicio de voz. Puedes responder con los botones.",
+    };
+    vozEstado.textContent = mensajes[error] || "El reconocimiento se interrumpió. Puedes responder con los botones.";
+  };
+  reconocimiento.onend = () => {
+    if (microfonoVoz !== reconocimiento) return;
+    if (huboRespuesta) escuchar();
+    else apagarMicrofonoVoz();
+  };
+  escuchar();
+});
+
+NOTES.forEach(nota => {
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.className = "btn ghost sm";
+  boton.textContent = nota;
+  boton.addEventListener("click", () => {
+    apagarMicrofonoVoz();
+    responderNotaVoz(nota);
+  });
+  vozRespuestas.appendChild(boton);
+});
+$("vozReiniciar").addEventListener("click", reiniciarLecturaVoz);
+lecturaVoz.addEventListener("toggle", () => {
+  if (!lecturaVoz.open) apagarMicrofonoVoz();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) apagarMicrofonoVoz();
+});
+window.addEventListener("pagehide", apagarMicrofonoVoz);
 
 /* ----- Init ----- */
 const abrirEnGrande = leerHash();

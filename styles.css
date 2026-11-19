@@ -357,6 +357,10 @@ h4 { margin: 0 0 .5rem; font-weight: 700; }
 .ejercicio-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
 .exercise-clef { font-size: .95rem; font-weight: 800; }
 .staff.exercise { width: 100%; max-width: 760px; height: auto; }
+.lectura-voz summary { cursor: pointer; font-weight: 700; }
+.lectura-voz-cuerpo { max-width: 32rem; }
+.staff.voz-staff { display: block; width: min(100%, 22rem); height: auto; }
+#vozEstado { min-height: 1.5em; margin-block: .4rem .75rem; }
 
 .ejercicio-ctrls { border-top: 1px solid color-mix(in srgb, var(--accent) 12%, transparent); padding-top: .75rem; }
 .ctrl-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }

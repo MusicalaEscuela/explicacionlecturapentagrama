@@ -125,6 +125,22 @@
         <p class="muted text-sm" id="rutaDesc"></p>
       </div>
 
+      <details class="ejercicio-panel lectura-voz mt-3" id="lecturaVoz">
+        <summary>Practicar con la voz</summary>
+        <p class="muted text-sm mt-2">Di el nombre de cada nota con tu voz normal. Espera a que aparezca la siguiente antes de responder.</p>
+        <div class="lectura-voz-cuerpo">
+          <svg id="staffVoz" class="staff voz-staff" role="img"></svg>
+          <p id="vozProgreso" class="muted text-sm"></p>
+          <p id="vozEstado" role="status"></p>
+          <div class="ctrl-row">
+            <button id="vozMicro" type="button" class="btn primary">Activar micrófono</button>
+            <button id="vozReiniciar" type="button" class="btn ghost sm">Reiniciar práctica</button>
+          </div>
+          <p class="muted text-xs mt-2">El navegador puede enviar el audio a su servicio de reconocimiento.</p>
+          <div id="vozRespuestas" class="ctrl-row mt-2" role="group" aria-label="Responder sin micrófono"></div>
+        </div>
+      </details>
+
       <div class="grid2 mt-3 ruta-body">
         <!-- Ejercicio por compases -->
         <div class="ejercicio-panel">
