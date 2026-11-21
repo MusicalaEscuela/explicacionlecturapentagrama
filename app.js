@@ -54,17 +54,14 @@ const NOTES_PER_MEASURE = 4;
 const GUIA_META = {
   lineas: {
     id: "lineas", nombre: "Líneas", icono: "▬",
-    intro: "Solo notas en las líneas del pentagrama. Es la guía de líneas de Musicala, compás por compás.",
     titulos: ["2 líneas", "3 líneas", "4 líneas", "5 líneas", "Líneas + adicional grave"],
   },
   espacios: {
     id: "espacios", nombre: "Espacios", icono: "▭",
-    intro: "Solo notas en los espacios. Es la guía de espacios de Musicala, compás por compás.",
     titulos: ["2 espacios", "3 espacios", "4 espacios", "Espacios + agudo", "Espacios + grave"],
   },
   mixto: {
     id: "mixto", nombre: "Líneas + espacios", icono: "▩",
-    intro: "Lectura combinada: todo el pentagrama, ampliando el ámbito etapa tras etapa.",
     titulos: null, // se generan solas: "Etapa 1" … "Etapa 14"
   },
 };
@@ -447,7 +444,7 @@ function renderRuta() {
   cursor = Math.min(cursor, MEASURES - 1);
 
   rutaTitulo.textContent = `${etapa.id} · ${etapa.titulo}`;
-  rutaDesc.textContent = `${guia.intro} Compases ${etapa.desdeCompas}–${etapa.desdeCompas + MEASURES - 1} de la guía original.`;
+  rutaDesc.textContent = `Compases ${etapa.desdeCompas}–${etapa.desdeCompas + MEASURES - 1}`;
   rutaClaveTxt.textContent = CLAVES[clave].nombre;
   staffEjercicio.setAttribute("aria-label", `Ejercicio de lectura por compases · ${CLAVES[clave].nombre}`);
   rutaProgreso.textContent = `Etapa ${etapaIdx + 1} de ${guia.etapas.length}`;
@@ -661,11 +658,13 @@ let contextoVoz;
 let notasVoz = [];
 let indiceVoz = 0;
 let microfonoVoz = null;
+let reintentoVoz;
 
 function apagarMicrofonoVoz() {
   if (!microfonoVoz) return;
   const reconocimiento = microfonoVoz;
   microfonoVoz = null;
+  clearTimeout(reintentoVoz);
   reconocimiento.abort();
   vozMicro.textContent = "Activar micrófono";
   vozEstado.textContent = "Micrófono desactivado.";
@@ -718,11 +717,19 @@ function responderNotaVoz(nombre) {
   }
 }
 
+const nombresDictados = new Map([
+  ["do", "Do"], ["doh", "Do"], ["re", "Re"], ["reh", "Re"],
+  ["mi", "Mi"], ["fa", "Fa"], ["sol", "Sol"], ["la", "La"], ["si", "Si"],
+]);
+
 function nombreReconocido(transcripcion) {
-  const palabra = transcripcion.toLowerCase().normalize("NFD")
-    .replace(/\p{M}/gu, "").replace(/\p{P}/gu, " ").trim()
-    .replace(/^la nota\s+|^nota\s+/, "");
-  return NOTES.find(nota => nota.toLowerCase() === palabra);
+  const frase = transcripcion.toLowerCase().normalize("NFD")
+    .replace(/\p{M}/gu, "").replace(/[^a-z\s]/g, " ").trim()
+    .replace(/^(?:es\s+)?(?:(?:la\s+)?nota\s+)?/, "");
+  const palabras = frase.split(/\s+/);
+  if (palabras.every(palabra => palabra === palabras[0])) {
+    return nombresDictados.get(palabras[0]);
+  }
 }
 
 vozMicro.addEventListener("click", () => {
@@ -732,56 +739,102 @@ vozMicro.addEventListener("click", () => {
   }
 
   const reconocimiento = new ReconocimientoVoz();
-  microfonoVoz = reconocimiento;
   reconocimiento.lang = "es-CO";
+  reconocimiento.continuous = false;
+  reconocimiento.interimResults = false;
+  reconocimiento.maxAlternatives = 5;
+  microfonoVoz = reconocimiento;
   vozMicro.textContent = "Desactivar micrófono";
   vozEstado.textContent = "Activando micrófono…";
+  let huboRespuesta = false;
+  let turnosSinVoz = 0;
+
+  function finalizar(mensaje) {
+    apagarMicrofonoVoz();
+    vozEstado.textContent = mensaje;
+  }
 
   function escuchar() {
+    if (microfonoVoz !== reconocimiento) return;
+    huboRespuesta = false;
     try {
       reconocimiento.start();
     } catch {
-      apagarMicrofonoVoz();
-      vozEstado.textContent = "No se pudo iniciar el micrófono. Puedes responder con los botones.";
+      finalizar("No se pudo iniciar el micrófono. Vuelve a activarlo o responde abajo.");
     }
   }
 
-  let huboRespuesta = false;
   reconocimiento.onstart = () => {
-    if (microfonoVoz !== reconocimiento) return;
-    if (!huboRespuesta) vozEstado.textContent = "Escuchando. Di el nombre de la nota.";
-    huboRespuesta = false;
+    if (microfonoVoz === reconocimiento && vozEstado.textContent === "Activando micrófono…") {
+      vozEstado.textContent = "Escuchando. Di el nombre de la nota.";
+    }
   };
+
   reconocimiento.onresult = evento => {
     if (microfonoVoz !== reconocimiento || huboRespuesta) return;
+    const resultado = evento.results[evento.resultIndex];
+    if (!resultado?.isFinal) return;
     huboRespuesta = true;
-    const nombre = nombreReconocido(evento.results[evento.resultIndex][0].transcript);
-    if (nombre) responderNotaVoz(nombre);
-    else vozEstado.textContent = "No reconocí un nombre de nota. Prueba de nuevo.";
+    turnosSinVoz = 0;
+    const alternativas = Array.from(resultado, opcion => opcion.transcript);
+    const nombre = alternativas.map(nombreReconocido).find(Boolean);
+    if (nombre) {
+      responderNotaVoz(nombre);
+    } else {
+      const texto = alternativas[0]?.trim().slice(0, 60);
+      vozEstado.textContent = texto
+        ? `Oí «${texto}». Di solo el nombre de la nota.`
+        : "No reconocí la nota. Intenta de nuevo.";
+    }
   };
+
   reconocimiento.onnomatch = () => {
     if (microfonoVoz !== reconocimiento) return;
     huboRespuesta = true;
-    vozEstado.textContent = "No reconocí un nombre de nota. Prueba de nuevo.";
+    turnosSinVoz = 0;
+    vozEstado.textContent = "No reconocí la nota. Intenta de nuevo.";
   };
+
   reconocimiento.onerror = ({ error }) => {
     if (microfonoVoz !== reconocimiento) return;
-    apagarMicrofonoVoz();
+    if (error === "no-speech") return;
+    if (error === "language-not-supported" && reconocimiento.lang === "es-CO") {
+      reconocimiento.lang = "es-ES";
+      huboRespuesta = true;
+      return;
+    }
     const mensajes = {
-      "not-allowed": "El navegador bloqueó el micrófono. Revisa el permiso del sitio o responde con los botones.",
-      "audio-capture": "El navegador no encontró un micrófono disponible.",
-      "no-speech": "No se detectó voz. Activa el micrófono para continuar.",
-      network: "Falló la conexión con el servicio de voz. Puedes responder con los botones.",
+      "not-allowed": "Permite el micrófono en los ajustes del sitio y vuelve a activarlo.",
+      "service-not-allowed": "El navegador bloqueó el servicio de voz. Puedes responder abajo.",
+      "audio-capture": "No encontré un micrófono. Conecta uno o responde abajo.",
+      network: "El servicio de voz no respondió. Revisa tu conexión o responde abajo.",
     };
-    vozEstado.textContent = mensajes[error] || "El reconocimiento se interrumpió. Puedes responder con los botones.";
+    finalizar(mensajes[error] || "Se interrumpió el reconocimiento. Vuelve a activar el micrófono o responde abajo.");
   };
+
   reconocimiento.onend = () => {
     if (microfonoVoz !== reconocimiento) return;
-    if (huboRespuesta) escuchar();
-    else apagarMicrofonoVoz();
+    if (!huboRespuesta && ++turnosSinVoz >= 2) {
+      finalizar("No detecté voz. Acércate al micrófono y vuelve a activarlo.");
+      return;
+    }
+    if (!huboRespuesta) vozEstado.textContent = "No detecté voz. Sigo escuchando.";
+    reintentoVoz = setTimeout(escuchar, 180);
   };
   escuchar();
 });
+
+const modoCompases = $("modoCompases");
+const modoVoz = $("modoVoz");
+function elegirModoPractica(porVoz) {
+  lecturaVoz.hidden = !porVoz;
+  $("lecturaCompases").hidden = porVoz;
+  modoCompases.setAttribute("aria-pressed", String(!porVoz));
+  modoVoz.setAttribute("aria-pressed", String(porVoz));
+  if (!porVoz) apagarMicrofonoVoz();
+}
+modoCompases.addEventListener("click", () => elegirModoPractica(false));
+modoVoz.addEventListener("click", () => elegirModoPractica(true));
 
 NOTES.forEach(nota => {
   const boton = document.createElement("button");
@@ -795,9 +848,6 @@ NOTES.forEach(nota => {
   vozRespuestas.appendChild(boton);
 });
 $("vozReiniciar").addEventListener("click", reiniciarLecturaVoz);
-lecturaVoz.addEventListener("toggle", () => {
-  if (!lecturaVoz.open) apagarMicrofonoVoz();
-});
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) apagarMicrofonoVoz();
 });

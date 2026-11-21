@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <link rel="preload" href="fuentes/bravura-claves.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body data-theme="light">
   <header class="site-header wrap">
@@ -22,77 +22,48 @@
   </header>
 
   <main class="wrap">
-    <!-- HERO -->
-    <section class="card hero">
+    <section class="hero">
       <div class="grid2">
-        <div>
-          <h1>Leer música en el <span class="resaltado">pentagrama</span></h1>
-          <p class="mt-3">
-            En Musicala leemos como aprendemos a hablar:
-            primero <strong>vocales</strong>, luego <strong>consonantes</strong> y después <strong>palabras</strong>.
-            Aquí es igual: primero <strong>líneas</strong>, luego <strong>espacios</strong> y finalmente
-            <strong>líneas + espacios</strong> — paso a paso, sistema por sistema.
-          </p>
-          <div class="flex mt-4">
-            <a class="btn primary practice-link" href="#ejercicios">Ir a los ejercicios ↓</a>
-          </div>
-          <div class="mt-3" role="group" aria-label="Clave del ejemplo">
-            <div class="muted text-sm">Explora las claves</div>
-            <div class="chips" id="claveChips"></div>
-          </div>
+        <div class="hero-copy">
+          <h1>Lectura en el <span class="resaltado">pentagrama</span></h1>
+          <p>Aprende a reconocer las notas en clave de Sol, Fa y Do.</p>
+          <nav class="flex mt-4" aria-label="Secciones">
+            <a class="btn primary practice-link" href="#ejercicios">Ir a la práctica</a>
+            <a class="btn ghost practice-link" href="#clases">Ver las clases</a>
+          </nav>
         </div>
-
         <div class="staffShell">
+          <div class="chips" id="claveChips" role="group" aria-label="Clave del ejemplo"></div>
           <svg id="staffHero" class="staff hero-staff" role="img" aria-label="Pentagrama principal"></svg>
-          <p class="muted mt-2 text-sm">
-            Pentagrama = <em>penta</em> (cinco) + <em>gramma</em> (trazo/líneas).
-            Son <strong>5 líneas</strong> (L1–L5) y <strong>4 espacios</strong> (E1–E4).
-            Arriba ves cómo se llama cada una en la clave elegida.
-          </p>
         </div>
       </div>
     </section>
 
-    <!-- DEFINICIONES -->
-    <section class="mt-8 grid3">
-      <div class="card p-16">
-        <h2><span class="k">1.</span> ¿Qué es el pentagrama?</h2>
-        <p class="mt-3 muted">
-          Es el sistema de <strong>5 líneas paralelas</strong> y <strong>4 espacios</strong> donde escribimos las notas.
-          La posición vertical define la <em>altura</em> (qué nota es) y las figuras definen la <em>duración</em>.
-        </p>
-        <ul class="mt-3 muted lista">
-          <li><strong>Etimología:</strong> del griego <em>penta</em> (cinco) + <em>gramma</em> (trazo/línea).</li>
-          <li><strong>Numeración:</strong> líneas 1–5 de abajo hacia arriba.</li>
-        </ul>
-      </div>
-
-      <div class="card p-16">
-        <h2><span class="k">2.</span> ¿Qué hace la clave?</h2>
-        <p class="mt-3 muted">
-          La <strong>clave</strong> es una etiqueta que dice: “esta <em>línea</em> se llama así”.
-          Desde ese punto, se cuentan <strong>L1→L5</strong> y los <strong>E1→E4</strong> de abajo hacia arriba.
-        </p>
-        <div class="mt-3 muted text-sm">
-          <ul class="lista">
-            <li><strong>Clave de Sol:</strong> la <strong>2ª línea (L2)</strong> vale <strong>Sol</strong>.</li>
-            <li><strong>Clave de Fa:</strong> la <strong>4ª línea (L4)</strong> vale <strong>Fa</strong>.</li>
-            <li><strong>Clave de Do (en 3ª):</strong> la <strong>3ª línea (L3)</strong> vale <strong>Do</strong>.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="card p-16">
-        <h2><span class="k">3.</span> ¿Por qué hay varias claves?</h2>
-        <p class="mt-3 muted">
-          Porque cada voz o instrumento suena en un rango distinto. Cambiando la clave <em>centramos</em> las notas dentro
-          del pentagrama y evitamos muchas líneas adicionales. Así la lectura es más <strong>clara y rápida</strong>.
-        </p>
-        <ul class="mt-3 muted lista">
-          <li><strong>Sol:</strong> zonas agudas (violín, flauta, soprano, mano derecha del piano).</li>
-          <li><strong>Fa:</strong> zonas graves (bajo, tuba, fagot, mano izquierda del piano).</li>
-          <li><strong>Do (en 3ª):</strong> zonas medias (viola, tenor, zonas medias de chelo/trombón).</li>
-        </ul>
+    <section class="mt-8 clases" id="clases" aria-labelledby="clasesTitulo">
+      <h2 id="clasesTitulo">Clases</h2>
+      <div class="clases-grid">
+        <details class="clase">
+          <summary>El pentagrama</summary>
+          <p>Tiene <strong>cinco líneas</strong> y <strong>cuatro espacios</strong>. Se cuentan de abajo hacia arriba.</p>
+          <p>La posición de la nota indica su altura. La figura indica cuánto dura.</p>
+        </details>
+        <details class="clase">
+          <summary>Las claves</summary>
+          <p>Cada clave fija el nombre de una línea. Desde allí puedes contar las demás notas.</p>
+          <dl>
+            <dt>Sol</dt><dd>Segunda línea</dd>
+            <dt>Fa</dt><dd>Cuarta línea</dd>
+            <dt>Do en tercera</dt><dd>Tercera línea</dd>
+          </dl>
+        </details>
+        <details class="clase">
+          <summary>Cuándo usar cada clave</summary>
+          <dl>
+            <dt>Sol</dt><dd>Registros agudos, como el violín y la flauta.</dd>
+            <dt>Fa</dt><dd>Registros graves, como el bajo y la tuba.</dd>
+            <dt>Do en tercera</dt><dd>Registros medios, como el de la viola.</dd>
+          </dl>
+        </details>
       </div>
     </section>
 
@@ -106,15 +77,12 @@
         <strong id="practiceClefsLabel">Elige la clave para practicar</strong>
         <div class="chips" id="practiceClefs"></div>
       </div>
-      <p class="mt-2 muted">
-        Son las <strong>guías de lectura de Musicala</strong>, compás por compás: primero <strong>líneas</strong>,
-        luego <strong>espacios</strong> y por último <strong>líneas + espacios</strong>. El ejercicio es el mismo
-        en las tres claves: cambia la clave y cambian los nombres de las notas.
-      </p>
-
       <div class="guia-tabs mt-3" id="guiaTabs"></div>
 
-      <div class="chips ruta-chips mt-3" id="rutaChips"></div>
+      <details class="selector-etapa mt-3">
+        <summary>Ver todas las etapas</summary>
+        <div class="chips ruta-chips mt-2" id="rutaChips"></div>
+      </details>
       <div class="flex ruta-sysnav mt-2">
         <button id="btnPrevSys" class="btn ghost sm">← Etapa anterior</button>
         <button id="btnNextSys" class="btn ghost sm">Etapa siguiente →</button>
@@ -125,9 +93,12 @@
         <p class="muted text-sm" id="rutaDesc"></p>
       </div>
 
-      <details class="ejercicio-panel lectura-voz mt-3" id="lecturaVoz">
-        <summary>Practicar con la voz</summary>
-        <p class="muted text-sm mt-2">Di el nombre de cada nota con tu voz normal. Espera a que aparezca la siguiente antes de responder.</p>
+      <div class="modo-practica" role="group" aria-label="Modo de práctica">
+        <button class="btn ghost" id="modoCompases" type="button" aria-pressed="true" aria-controls="lecturaCompases">Por compases</button>
+        <button class="btn ghost" id="modoVoz" type="button" aria-pressed="false" aria-controls="lecturaVoz">Por voz o botones</button>
+      </div>
+      <section class="ejercicio-panel lectura-voz mt-3" id="lecturaVoz" aria-label="Práctica nota por nota" hidden>
+        <p class="muted text-sm">Di el nombre de la nota en voz alta o selecciónalo abajo.</p>
         <div class="lectura-voz-cuerpo">
           <svg id="staffVoz" class="staff voz-staff" role="img"></svg>
           <p id="vozProgreso" class="muted text-sm"></p>
@@ -136,12 +107,12 @@
             <button id="vozMicro" type="button" class="btn primary">Activar micrófono</button>
             <button id="vozReiniciar" type="button" class="btn ghost sm">Reiniciar práctica</button>
           </div>
-          <p class="muted text-xs mt-2">El navegador puede enviar el audio a su servicio de reconocimiento.</p>
+          <details class="muted text-sm ayuda-voz"><summary>Ayuda con el micrófono</summary><p>Permite el micrófono en los ajustes del sitio. Di una sola nota por turno, sin cantarla. El navegador puede enviar el audio a su servicio de reconocimiento.</p></details>
           <div id="vozRespuestas" class="ctrl-row mt-2" role="group" aria-label="Responder sin micrófono"></div>
         </div>
-      </details>
+      </section>
 
-      <div class="grid2 mt-3 ruta-body">
+      <div class="mt-3 ruta-body" id="lecturaCompases">
         <!-- Ejercicio por compases -->
         <div class="ejercicio-panel">
           <div class="ejercicio-head">
@@ -156,7 +127,7 @@
           <div class="ejercicio-ctrls mt-3">
             <div class="ctrl-row">
               <button id="btnCompasPrev" class="btn ghost sm">◀</button>
-              <span class="hoy-chip">Hoy: <strong id="compasHoyTxt"></strong></span>
+              <span class="hoy-chip">Compás <strong id="compasHoyTxt"></strong></span>
               <button id="btnCompasNext" class="btn ghost sm">▶</button>
               <button id="btnLeido" class="btn primary">Marcar leído ✓</button>
               <button id="btnReiniciar" class="btn ghost sm">Reiniciar</button>
@@ -169,14 +140,14 @@
         </div>
 
         <!-- Referencia: mano + mapa de notas -->
-        <div class="hand-panel">
-          <h4 class="muted">Mano de referencia <span class="text-xs">(según la clave)</span></h4>
+        <details class="hand-panel mt-3">
+          <summary>Mano de referencia y nombres de las notas</summary>
           <div class="hand-imgs" id="handImgs"></div>
           <p class="muted text-xs mt-2">
             Dedos = <strong>líneas</strong> · huecos = <strong>espacios</strong>. Se leen de <strong>abajo → arriba</strong>. Haz clic para ampliar.
           </p>
           <div class="listPills mt-3" id="rutaPills"></div>
-        </div>
+        </details>
       </div>
     </section>
 
@@ -226,6 +197,6 @@
   </div>
 
   <script defer src="ejercicios.js"></script>
-  <script defer src="app.js"></script>
+  <script defer src="app.js?v=2"></script>
 </body>
 </html>
