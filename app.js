@@ -653,12 +653,18 @@ const lecturaVoz = $("lecturaVoz");
 const staffVoz = $("staffVoz");
 const vozMicro = $("vozMicro");
 const vozEstado = $("vozEstado");
+const vozMensaje = $("vozMensaje");
 const vozRespuestas = $("vozRespuestas");
 let contextoVoz;
 let notasVoz = [];
 let indiceVoz = 0;
 let microfonoVoz = null;
 let reintentoVoz;
+
+function mostrarEstadoVoz(mensaje, resultado = "") {
+  vozEstado.dataset.resultado = resultado;
+  vozMensaje.textContent = mensaje;
+}
 
 function apagarMicrofonoVoz() {
   if (!microfonoVoz) return;
@@ -667,7 +673,7 @@ function apagarMicrofonoVoz() {
   clearTimeout(reintentoVoz);
   reconocimiento.abort();
   vozMicro.textContent = "Activar micrófono";
-  vozEstado.textContent = "Micrófono desactivado.";
+  mostrarEstadoVoz("Micrófono desactivado.");
 }
 
 function mostrarNotaVoz() {
@@ -688,9 +694,9 @@ function reiniciarLecturaVoz() {
   apagarMicrofonoVoz();
   notasVoz = etapaActual().compases.flat();
   indiceVoz = 0;
-  vozEstado.textContent = ReconocimientoVoz
+  mostrarEstadoVoz(ReconocimientoVoz
     ? "Activa el micrófono o elige un nombre abajo."
-    : "El reconocimiento de voz no está disponible en este navegador. Elige un nombre abajo.";
+    : "El reconocimiento de voz no está disponible en este navegador. Elige un nombre abajo.");
   mostrarNotaVoz();
 }
 
@@ -704,16 +710,16 @@ function actualizarLecturaVoz() {
 function responderNotaVoz(nombre) {
   if (indiceVoz >= notasVoz.length) return;
   if (nombre !== noteAt(clave, notasVoz[indiceVoz])) {
-    vozEstado.textContent = `«${nombre}» no coincide. Intenta con la misma nota.`;
+    mostrarEstadoVoz(`«${nombre}» no coincide. Intenta con la misma nota.`, "error");
     return;
   }
   indiceVoz++;
   mostrarNotaVoz();
   if (indiceVoz === notasVoz.length) {
     apagarMicrofonoVoz();
-    vozEstado.textContent = "¡Completaste la práctica de esta etapa!";
+    mostrarEstadoVoz("¡Completaste la práctica de esta etapa!", "acierto");
   } else {
-    vozEstado.textContent = `¡Correcto! ${nombre}. Continúa con la siguiente nota.`;
+    mostrarEstadoVoz(`¡Correcto! ${nombre}. Continúa con la siguiente nota.`, "acierto");
   }
 }
 
@@ -745,13 +751,13 @@ vozMicro.addEventListener("click", () => {
   reconocimiento.maxAlternatives = 5;
   microfonoVoz = reconocimiento;
   vozMicro.textContent = "Desactivar micrófono";
-  vozEstado.textContent = "Activando micrófono…";
+  mostrarEstadoVoz("Activando micrófono…");
   let huboRespuesta = false;
   let turnosSinVoz = 0;
 
   function finalizar(mensaje) {
     apagarMicrofonoVoz();
-    vozEstado.textContent = mensaje;
+    mostrarEstadoVoz(mensaje);
   }
 
   function escuchar() {
@@ -765,8 +771,8 @@ vozMicro.addEventListener("click", () => {
   }
 
   reconocimiento.onstart = () => {
-    if (microfonoVoz === reconocimiento && vozEstado.textContent === "Activando micrófono…") {
-      vozEstado.textContent = "Escuchando. Di el nombre de la nota.";
+    if (microfonoVoz === reconocimiento && vozMensaje.textContent === "Activando micrófono…") {
+      mostrarEstadoVoz("Escuchando. Di el nombre de la nota.");
     }
   };
 
@@ -782,9 +788,9 @@ vozMicro.addEventListener("click", () => {
       responderNotaVoz(nombre);
     } else {
       const texto = alternativas[0]?.trim().slice(0, 60);
-      vozEstado.textContent = texto
+      mostrarEstadoVoz(texto
         ? `Oí «${texto}». Di solo el nombre de la nota.`
-        : "No reconocí la nota. Intenta de nuevo.";
+        : "No reconocí la nota. Intenta de nuevo.");
     }
   };
 
@@ -792,7 +798,7 @@ vozMicro.addEventListener("click", () => {
     if (microfonoVoz !== reconocimiento) return;
     huboRespuesta = true;
     turnosSinVoz = 0;
-    vozEstado.textContent = "No reconocí la nota. Intenta de nuevo.";
+    mostrarEstadoVoz("No reconocí la nota. Intenta de nuevo.");
   };
 
   reconocimiento.onerror = ({ error }) => {
@@ -818,7 +824,7 @@ vozMicro.addEventListener("click", () => {
       finalizar("No detecté voz. Acércate al micrófono y vuelve a activarlo.");
       return;
     }
-    if (!huboRespuesta) vozEstado.textContent = "No detecté voz. Sigo escuchando.";
+    if (!huboRespuesta) mostrarEstadoVoz("No detecté voz. Sigo escuchando.");
     reintentoVoz = setTimeout(escuchar, 180);
   };
   escuchar();

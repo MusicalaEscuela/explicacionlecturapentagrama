@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <link rel="preload" href="fuentes/bravura-claves.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body data-theme="light">
   <header class="site-header wrap">
@@ -102,7 +102,10 @@
         <div class="lectura-voz-cuerpo">
           <svg id="staffVoz" class="staff voz-staff" role="img"></svg>
           <p id="vozProgreso" class="muted text-sm"></p>
-          <p id="vozEstado" role="status"></p>
+          <p id="vozEstado" role="status">
+            <span class="voz-resultado" aria-hidden="true"></span>
+            <span id="vozMensaje"></span>
+          </p>
           <div class="ctrl-row">
             <button id="vozMicro" type="button" class="btn primary">Activar micrófono</button>
             <button id="vozReiniciar" type="button" class="btn ghost sm">Reiniciar práctica</button>
@@ -197,6 +200,6 @@
   </div>
 
   <script defer src="ejercicios.js"></script>
-  <script defer src="app.js?v=2"></script>
+  <script defer src="app.js?v=3"></script>
 </body>
 </html>
