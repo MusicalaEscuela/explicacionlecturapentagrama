@@ -54,14 +54,17 @@ const NOTES_PER_MEASURE = 4;
 const GUIA_META = {
   lineas: {
     id: "lineas", nombre: "Líneas", icono: "▬",
+    intro: "Solo notas en las líneas del pentagrama. Es la guía de líneas de Musicala, compás por compás.",
     titulos: ["2 líneas", "3 líneas", "4 líneas", "5 líneas", "Líneas + adicional grave"],
   },
   espacios: {
     id: "espacios", nombre: "Espacios", icono: "▭",
+    intro: "Solo notas en los espacios. Es la guía de espacios de Musicala, compás por compás.",
     titulos: ["2 espacios", "3 espacios", "4 espacios", "Espacios + agudo", "Espacios + grave"],
   },
   mixto: {
     id: "mixto", nombre: "Líneas + espacios", icono: "▩",
+    intro: "Lectura combinada: todo el pentagrama, ampliando el ámbito etapa tras etapa.",
     titulos: null, // se generan solas: "Etapa 1" … "Etapa 14"
   },
 };
@@ -444,7 +447,7 @@ function renderRuta() {
   cursor = Math.min(cursor, MEASURES - 1);
 
   rutaTitulo.textContent = `${etapa.id} · ${etapa.titulo}`;
-  rutaDesc.textContent = `Compases ${etapa.desdeCompas}–${etapa.desdeCompas + MEASURES - 1}`;
+  rutaDesc.textContent = `${guia.intro} Compases ${etapa.desdeCompas}–${etapa.desdeCompas + MEASURES - 1} de la guía original.`;
   rutaClaveTxt.textContent = CLAVES[clave].nombre;
   staffEjercicio.setAttribute("aria-label", `Ejercicio de lectura por compases · ${CLAVES[clave].nombre}`);
   rutaProgreso.textContent = `Etapa ${etapaIdx + 1} de ${guia.etapas.length}`;

@@ -684,7 +684,7 @@ body {
 .clases h2, .ruta h2, .ruta h3 { margin: 0; }
 .clases-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: .75rem;
   align-items: start;
   margin-top: .75rem;
@@ -695,15 +695,8 @@ body {
   border-radius: 12px;
   padding: .7rem .9rem;
 }
-.clase p, .clase dl, .ayuda-voz p { margin: .65rem 0 0; color: var(--muted); }
-.clase dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: .35rem .65rem;
-}
-.clase dt { font-weight: 700; color: var(--text); }
-.clase dd { margin: 0; }
-.clase summary, .selector-etapa summary, .hand-panel summary, .ayuda-voz summary {
+.clase p, .clase ul, .ayuda-voz p { margin: .65rem 0 0; color: var(--muted); }
+.clase summary, .selector-etapa summary, .ayuda-voz summary {
   cursor: pointer;
   font-weight: 700;
 }
@@ -731,10 +724,14 @@ body {
 #vozProgreso { margin: .25rem 0; }
 #vozRespuestas button { min-width: 44px; min-height: 44px; }
 .ayuda-voz { margin: .75rem auto 0; max-width: 34rem; }
-.hand-panel[open] .hand-imgs { margin-top: .75rem; }
+#clases, #mano-referencia { scroll-margin-top: 1rem; }
+.staffShell > p { margin: 0; }
+.reference-link { color: var(--accent); padding: .5rem; }
+.reference-link:hover { text-decoration: underline; }
+.hand-panel .hand-imgs { margin-top: .75rem; }
+.mapa-notas-titulo { margin: 1rem 0 0; }
 main footer { padding-bottom: 1.5rem; }
 @media (max-width: 650px) {
-  .clases-grid { grid-template-columns: 1fr; }
   .hero .grid2 { gap: 1rem; }
   .mt-8 { margin-top: 2rem; }
 }
