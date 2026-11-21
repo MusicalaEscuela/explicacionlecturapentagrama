@@ -397,9 +397,9 @@ function crearClaveChips(container) {
   Object.values(CLAVES).forEach(c => {
     const chip = document.createElement("button");
     chip.type = "button";
-    chip.className = "chip";
+    chip.className = "clave-option";
     chip.dataset.clave = c.id;
-    chip.innerHTML = `<span class="chip-glifo" aria-hidden="true">${c.glifo}</span> ${c.corto}`;
+    chip.innerHTML = `<span class="chip-glifo" aria-hidden="true">${c.glifo}</span><span>${c.corto}</span>`;
     chip.onclick = () => seleccionarClave(c.id);
     container.appendChild(chip);
   });

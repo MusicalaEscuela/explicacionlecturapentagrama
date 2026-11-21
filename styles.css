@@ -251,19 +251,50 @@ h4 { margin: 0 0 .5rem; font-weight: 700; }
   align-items: center;
   flex-wrap: wrap;
   gap: .5rem 1rem;
-  padding: .75rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 8%, var(--card));
 }
 
-.chips .chip[data-clave] {
-  min-height: 44px;
-  background: var(--card);
-  color: var(--text);
-  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--card));
+.clave-selector {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .25rem;
+  width: min(100%, 19rem);
+  padding: .25rem;
+  background: var(--section-tint);
+  border: 1px solid var(--section-border);
+  border-radius: 12px;
 }
-.chips .chip[data-clave]:hover { border-color: var(--accent); }
-.chips .chip[data-clave].active { background: #0c41c4; color: #fff; border-color: #0c41c4; }
+
+.clave-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 44px;
+  padding: .25rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 .9rem/1.2 var(--font);
+  cursor: pointer;
+}
+
+.clave-option:hover { color: var(--text); background: var(--card); }
+.clave-option[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--card);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--card));
+  box-shadow: 0 1px 3px #11152816;
+}
+.clave-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.chip-glifo {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.5rem;
+  font: 1.1rem/1 'BravuraClaves', serif;
+}
 
 .ruta-chips { gap: .4rem; }
 
@@ -494,7 +525,6 @@ h4 { margin: 0 0 .5rem; font-weight: 700; }
 .tab-ico { font-size: 1.05rem; }
 .tab-n { font-weight: 500; font-size: .78rem; opacity: .75; }
 
-.chip-glifo { font-family: 'BravuraClaves', serif; font-size: 1.05em; }
 
 /* ------------------ Modo presentación ------------------ */
 .present {

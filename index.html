@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <link rel="preload" href="fuentes/bravura-claves.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body data-theme="light">
   <header class="site-header wrap">
@@ -33,7 +33,7 @@
           </nav>
         </div>
         <div class="staffShell">
-          <div class="chips" id="claveChips" role="group" aria-label="Clave del ejemplo"></div>
+          <div class="clave-selector" id="claveChips" role="group" aria-label="Clave del ejemplo"></div>
           <svg id="staffHero" class="staff hero-staff" role="img" aria-label="Pentagrama principal"></svg>
         </div>
       </div>
@@ -74,8 +74,8 @@
         <span class="badge" id="rutaProgreso"></span>
       </div>
       <div class="practice-clefs mt-3" role="group" aria-labelledby="practiceClefsLabel">
-        <strong id="practiceClefsLabel">Elige la clave para practicar</strong>
-        <div class="chips" id="practiceClefs"></div>
+        <strong id="practiceClefsLabel">Clave de práctica</strong>
+        <div class="clave-selector" id="practiceClefs"></div>
       </div>
       <div class="guia-tabs mt-3" id="guiaTabs"></div>
 
@@ -200,6 +200,6 @@
   </div>
 
   <script defer src="ejercicios.js"></script>
-  <script defer src="app.js?v=3"></script>
+  <script defer src="app.js?v=4"></script>
 </body>
 </html>
